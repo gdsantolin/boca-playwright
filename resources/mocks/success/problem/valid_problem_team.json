@@ -4,14 +4,14 @@
     "resultFilePath": "./tests/result.json"
   },
   "login": {
-    "username": "admin",
+    "username": "team",
     "password": "boca",
-    "type": "Admin"
+    "type": "Team"
   },
   "problem": {
-    "id": "1001",
-    "filePath": "resources/L1_1.zip",
-    "colorName": "green",
-    "colorCode": "00FF00"
+    "name": "L1_1",
+    "downloadDescFile": "Yes",
+    "downloadPckgFile": "Yes",
+    "downloadDir": "./tests"
   }
 }

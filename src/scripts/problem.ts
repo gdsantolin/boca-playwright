@@ -100,45 +100,47 @@ export async function deleteProblems(page: Page): Promise<Problem[]> {
 
 export async function downloadProblem(
   page: Page,
-  problem: DownloadProblem
+  problem: DownloadProblem,
+  userType: string
 ): Promise<void> {
-  await page.goto(BASE_URL + '/admin/problem.php');
+  await page.goto(BASE_URL + '/' + userType.toLowerCase() + '/problem.php');
   // Wait for load state
   await page.waitForLoadState('domcontentloaded');
 
-  const row = await checkProblemExists(page, problem.id);
+  let row: Locator;
+  if (userType === 'Team') {
+    row = await checkTeamProblemExists(page, problem.name);
+  } else {
+    row = await checkProblemExists(page, problem.id);
+  }
+
+  const descfileCol = userType === 'Admin' ? 5 : 4;
+  const pckgfileCol = userType === 'Admin' ? 6 : 5;
+
   if (problem.downloadDescFile !== 'No') {
-    const link = await row.locator('td:nth-of-type(5) > a');
+    const link = await row.locator('td:nth-of-type(${descfileCol}) > a');
     if ((await link.count()) === 0)
       throw new ProblemError(ProblemMessages.DESC_FILE_UNAVAILABLE);
     await downloadFile(page, problem.downloadDir, link);
   }
 
   if (problem.downloadPckgFile !== 'No') {
-    const link = await row.locator('td:nth-of-type(6) > a');
+    const link = await row.locator('td:nth-of-type(${pckgfileCol}) > a');
     if ((await link.count()) === 0)
       throw new ProblemError(ProblemMessages.PCKG_FILE_UNAVAILABLE);
     await downloadFile(page, problem.downloadDir, link);
   }
 }
 
-export async function getProblem(
+export async function getProblems(
   page: Page,
-  id: Problem['id']
-): Promise<Problem> {
-  await page.goto(BASE_URL + '/admin/problem.php');
+  userType: string
+): Promise<Problem[]> {
+  await page.goto(BASE_URL + '/' + userType.toLowerCase() + '/problem.php');
   // Wait for load state
   await page.waitForLoadState('domcontentloaded');
 
-  return await getProblemFromRow(page, id);
-}
-
-export async function getProblems(page: Page): Promise<Problem[]> {
-  await page.goto(BASE_URL + '/admin/problem.php');
-  // Wait for load state
-  await page.waitForLoadState('domcontentloaded');
-
-  const re = new RegExp(`^(Problem #|0 \\(fake\\))$`);
+  const re = new RegExp(`^(Problem #|0 \\(fake\\)|Name)$`);
   const loc = page.locator('td:nth-of-type(1)', {
     hasNotText: re
   });
@@ -151,9 +153,84 @@ export async function getProblems(page: Page): Promise<Problem[]> {
     const row = rows.nth(i);
     const columns = await row.locator('td').all();
     const id = await columns[0].innerText();
-    problems.push(await getProblem(page, id.replace('(deleted)', '')));
+    if (userType === 'Admin') {
+      problems.push(await getProblem(page, id.replace('(deleted)', '')));
+    } else if (userType === 'Team') {
+      problems.push(await getTeamProblem(page, id)); // id is the name
+      const problem = {} as Required<Problem>;
+      problem.name = await columns[0].innerText();
+    }
   }
   return problems;
+}
+
+export async function getProblem(
+  page: Page,
+  id: Problem['id']
+): Promise<Problem> {
+  await page.goto(BASE_URL + '/admin/problem.php');
+  await page.waitForLoadState('domcontentloaded');
+
+  return await getProblemFromRow(page, id);
+}
+
+export async function getTeamProblem(
+  page: Page,
+  name: Problem['name']
+): Promise<Problem> {
+  await page.goto(BASE_URL + '/team/problem.php');
+  await page.waitForLoadState('domcontentloaded');
+
+  return await getTeamProblemFromRow(page, name);
+}
+
+async function getTeamProblemFromRow(
+  page: Page,
+  name: Problem['name']
+): Promise<Problem> {
+  const problem = {} as Required<Problem>;
+  const re = new RegExp(`^${name.trim()}\\s*$`);
+  const row = await page.locator('form[name=form0] > table > tbody > tr', {
+    has: page.locator('td:nth-of-type(1)', { hasText: re })
+  });
+  if ((await row.count()) === 0)
+    throw new ProblemError(ProblemMessages.NOT_FOUND);
+  const columns = await row
+    .locator('td')
+    .filter({ hasNot: page.locator('[for*="autojudge"], [id*="autojudge"]') }) // Filter out autojudge elements
+    .all();
+  problem.name = await columns[0].innerText();
+  return problem;
+}
+
+async function getProblemFromRow(
+  page: Page,
+  id: Problem['id']
+): Promise<Problem> {
+  const problem = {} as Required<Problem>;
+  const re = new RegExp(`^${id}[\\(deleted\\)]*$`);
+  const row = await page.locator('form[name=form0] > table > tbody > tr', {
+    has: page.locator('td:nth-of-type(1)', { hasText: re })
+  });
+  if ((await row.count()) === 0)
+    throw new ProblemError(ProblemMessages.NOT_FOUND);
+  const columns = await row
+    .locator('td')
+    .filter({ hasNot: page.locator('[for*="autojudge"], [id*="autojudge"]') }) // Filter out autojudge elements
+    .all();
+  problem.id = (await columns[0].innerText()).replace('(deleted)', '');
+  problem.name = await columns[1].innerText();
+  problem.filePath = (await columns[5].innerText()).trim();
+  problem.colorName = await columns[6]
+    .locator('input[type=text]:nth-child(2)')
+    .inputValue();
+  problem.colorCode = await columns[6]
+    .locator('input[type=text]:nth-child(3)')
+    .inputValue();
+  problem.isEnabled = (await columns[0].innerText()).endsWith('(deleted)')
+    ? 'No'
+    : 'Yes';
+  return problem;
 }
 
 export async function restoreProblem(
@@ -243,6 +320,19 @@ async function checkProblemExists(page: Page, id: string): Promise<Locator> {
   return row;
 }
 
+async function checkTeamProblemExists(
+  page: Page,
+  name: string
+): Promise<Locator> {
+  const row = await page.locator('form[name=form0] > table > tbody > tr', {
+    has: page.locator('td:nth-of-type(1)', { hasText: name })
+  });
+  if ((await row.count()) === 0) {
+    throw new ProblemError(ProblemMessages.NOT_FOUND);
+  }
+  return row;
+}
+
 async function checkProblemNotExists(page: Page, id: string): Promise<Locator> {
   // const re = new RegExp(`^${id}[\\(deleted\\)]*$`);
   // Check if the id is being used by an active/enabled problem
@@ -304,34 +394,4 @@ async function fillProblemForm(
   if (problem.colorCode != undefined) {
     await page.locator('input[name="color"]').fill(problem.colorCode);
   }
-}
-
-async function getProblemFromRow(
-  page: Page,
-  id: Problem['id']
-): Promise<Problem> {
-  const problem = {} as Required<Problem>;
-  const re = new RegExp(`^${id}[\\(deleted\\)]*$`);
-  const row = await page.locator('form[name=form0] > table > tbody > tr', {
-    has: page.locator('td:nth-of-type(1)', { hasText: re })
-  });
-  if ((await row.count()) === 0)
-    throw new ProblemError(ProblemMessages.NOT_FOUND);
-  const columns = await row
-    .locator('td')
-    .filter({ hasNot: page.locator('[for*="autojudge"], [id*="autojudge"]') }) // Filter out autojudge elements
-    .all();
-  problem.id = (await columns[0].innerText()).replace('(deleted)', '');
-  problem.name = await columns[1].innerText();
-  problem.filePath = (await columns[5].innerText()).trim();
-  problem.colorName = await columns[6]
-    .locator('input[type=text]:nth-child(2)')
-    .inputValue();
-  problem.colorCode = await columns[6]
-    .locator('input[type=text]:nth-child(3)')
-    .inputValue();
-  problem.isEnabled = (await columns[0].innerText()).endsWith('(deleted)')
-    ? 'No'
-    : 'Yes';
-  return problem;
 }

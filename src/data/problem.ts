@@ -76,6 +76,13 @@ export const problemSchema = z.object({
   isEnabled: z.union([z.literal('Yes'), z.literal('No')])
 });
 
+export const teamProblemSchema = z.object({
+  name: z.string(),
+  basename: z.string(),
+  fullname: z.string(),
+  descfile: z.string()
+});
+
 export const createProblemSchema = problemSchema.omit({
   isEnabled: true
 });
@@ -97,7 +104,8 @@ const fileSchema = z
 
 export const downloadProblemSchema = problemSchema
   .pick({
-    id: true
+    id: true,
+    name: true
   })
   .merge(
     z.object({

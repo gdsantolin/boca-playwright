@@ -26,7 +26,8 @@ export type Auth = z.infer<typeof authSchema>;
 export const authSchema = userSchema
   .pick({
     username: true,
-    password: true
+    password: true,
+    type: true
   })
   .required();
 

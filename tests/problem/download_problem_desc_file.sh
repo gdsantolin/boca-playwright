@@ -33,27 +33,27 @@ fi
 oneTimeSetUp() {
   # Check if contest exists. If not, create it.
   config_file="resources/mocks/success/contest/valid_contest.json"
-  $cmd -- -p "${config_file}" -m getContest >/dev/null 2>&1
+  $cmd -- -p "${config_file}" -m getContest >/dev/null 
   ret_code=$?
   if [ "${ret_code}" != "${RET_SUCCESS}" ]; then
-    $cmd -- -p "${config_file}" -m createContest >/dev/null 2>&1
+    $cmd -- -p "${config_file}" -m createContest >/dev/null
     ret_code=$?
   fi
   # Activate contest.
   if [ "${ret_code}" = "${RET_SUCCESS}" ]; then
-    $cmd -- -p "${config_file}" -m activateContest >/dev/null 2>&1
+    $cmd -- -p "${config_file}" -m activateContest >/dev/null
     ret_code=$?
   fi
   # Check if problem exists. If it does not, create it.
   if [ "${ret_code}" = "${RET_SUCCESS}" ]; then
     config_file="resources/mocks/success/problem/valid_problem.json"
-    $cmd -- -p "${config_file}" -m getProblem >/dev/null 2>&1
+    $cmd -- -p "${config_file}" -m getProblem >/dev/null
     ret_code=$?
     if [ "${ret_code}" != "${RET_SUCCESS}" ]; then
-      $cmd -- -p "${config_file}" -m createProblem >/dev/null 2>&1
+      $cmd -- -p "${config_file}" -m createProblem >/dev/null 
       ret_code=$?
     else
-      $cmd -- -p "${config_file}" -m restoreProblem >/dev/null 2>&1
+      $cmd -- -p "${config_file}" -m restoreProblem >/dev/null 
       ret_code=$?
     fi
   fi
@@ -288,6 +288,18 @@ testDownloadValidProblemDescFile() {
     config_file="$1"
   else
     config_file="resources/mocks/success/problem/valid_problem.json"
+  fi
+
+  $cmd -- -p "${config_file}" -m downloadProblem >/dev/null 2>&1
+  ret_code=$?
+  assertEquals "${RET_SUCCESS}" "${ret_code}"
+}
+
+testDownloadValidProblemDescFileTeam() {
+  if [ -n "$1" ]; then
+    config_file="$1"
+  else
+    config_file="resources/mocks/success/problem/valid_problem_team.json"
   fi
 
   $cmd -- -p "${config_file}" -m downloadProblem >/dev/null 2>&1

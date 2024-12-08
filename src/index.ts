@@ -724,7 +724,7 @@ async function shouldDownloadProblem(setup: Setup): Promise<void> {
   // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.downloadProblem();
-  const admin: Auth = setupValidated.login;
+  const auth: Auth = setupValidated.login;
   const problem = setupValidated.problem;
 
   const browser = await chromium.launch({
@@ -736,9 +736,10 @@ async function shouldDownloadProblem(setup: Setup): Promise<void> {
   // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, admin);
-  await validate.checkUserType(page, 'Admin');
-  await downloadProblem(page, problem);
+  await authenticateUser(page, auth);
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
+  await downloadProblem(page, problem, userType);
   // Dispose context once it's no longer needed.
   await context.close();
   await browser.close();
@@ -753,7 +754,7 @@ async function shouldGetProblem(setup: Setup): Promise<void> {
   // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.getProblem();
-  const admin: Auth = setupValidated.login;
+  const auth: Auth = setupValidated.login;
   const problem = setupValidated.problem;
 
   const browser = await chromium.launch({
@@ -765,8 +766,9 @@ async function shouldGetProblem(setup: Setup): Promise<void> {
   // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, admin);
-  await validate.checkUserType(page, 'Admin');
+  await authenticateUser(page, auth);
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
   const form = await getProblem(page, problem.id);
   // Dispose context once it's no longer needed.
   await context.close();
@@ -784,7 +786,7 @@ async function shouldGetProblems(setup: Setup): Promise<void> {
   // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.checkAuthentication();
-  const admin: Auth = setupValidated.login;
+  const auth: Auth = setupValidated.login;
 
   const browser = await chromium.launch({
     headless: HEADLESS,
@@ -795,9 +797,10 @@ async function shouldGetProblems(setup: Setup): Promise<void> {
   // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, admin);
-  await validate.checkUserType(page, 'Admin');
-  const form = await getProblems(page);
+  await authenticateUser(page, auth);
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
+  const form = await getProblems(page, userType);
   // Dispose context once it's no longer needed.
   await context.close();
   await browser.close();

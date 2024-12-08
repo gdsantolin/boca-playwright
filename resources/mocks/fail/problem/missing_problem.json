@@ -4,7 +4,8 @@
     "resultFilePath": "./tests/result.json"
   },
   "login": {
-    "username": "admin",
-    "password": "boca"
+    "username": "team",
+    "password": "boca",
+    "type": "Team"
   }
 }

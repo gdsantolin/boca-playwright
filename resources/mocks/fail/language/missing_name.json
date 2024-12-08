@@ -5,7 +5,8 @@
   },
   "login": {
     "username": "admin",
-    "password": "boca"
+    "password": "boca",
+    "type": "Admin"
   },
   "language": {
     "id": "11",

@@ -5,7 +5,8 @@
   },
   "login": {
     "username": "system",
-    "password": "boca"
+    "password": "boca",
+    "type": "System"
   },
   "contest": {
     "name": "2024/1 - INF15979 - BDI",

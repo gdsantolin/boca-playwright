@@ -7,11 +7,13 @@
   "logins": {
     "system": {
       "username": "system",
-      "password": "boca"
+      "password": "boca",
+      "type": "System"
     },
     "admin": {
       "username": "admin",
-      "password": "boca"
+      "password": "boca",
+      "type": "Admin"
     }
   },
   "users": [

@@ -1,6 +1,7 @@
 {
   "login": {
     "username": "system",
-    "password": "boca"
+    "password": "boca",
+    "type": "System"
   }
 }
