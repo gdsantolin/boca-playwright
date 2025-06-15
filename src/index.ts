@@ -18,18 +18,14 @@
 //
 // ========================================================================
 
-import { Option, program } from 'commander';
-import * as fs from 'fs';
 import { chromium } from 'playwright';
-import { ZodError } from 'zod';
 import { type Auth } from './data/auth';
 import { type CreateContest, type UpdateContest } from './data/contest';
 import { type CreateProblem, type UpdateProblem } from './data/problem';
-import { setupSchema, type Setup } from './data/setup';
+import { type Setup } from './data/setup';
 import { type Site } from './data/site';
 import { type User } from './data/user';
 import { Validate } from './data/validate';
-import { ExitErrors, ReadMessages } from './errors/read_errors';
 import { Logger } from './logger';
 import { Output } from './output';
 import { authenticateUser } from './scripts/auth';
@@ -98,16 +94,14 @@ import {
   getTeamRuns,
   submitRun
 } from './scripts/run';
-import inquirer from 'inquirer';
-import { ExitPromptError } from '@inquirer/core';
 
 const STEP_DURATION = 100;
 const HEADLESS = true;
-let TIMEOUT = 5000;
-export let BASE_URL = 'http://localhost:8000/boca';
+const TIMEOUT = 5000;
+export const BASE_URL = 'http://localhost:8000/boca';
 
 //#region Contest
-async function shouldActivateContest(setup: Setup): Promise<void> {
+export async function shouldActivateContest(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Activating contest');
@@ -138,7 +132,7 @@ async function shouldActivateContest(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldCreateContest(setup: Setup): Promise<void> {
+export async function shouldCreateContest(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Creating contest');
@@ -169,7 +163,7 @@ async function shouldCreateContest(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetContest(setup: Setup): Promise<void> {
+export async function shouldGetContest(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting contest');
@@ -200,7 +194,7 @@ async function shouldGetContest(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetContests(setup: Setup): Promise<void> {
+export async function shouldGetContests(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting contests');
@@ -230,7 +224,7 @@ async function shouldGetContests(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldUpdateContest(setup: Setup): Promise<void> {
+export async function shouldUpdateContest(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Update contest');
@@ -263,7 +257,7 @@ async function shouldUpdateContest(setup: Setup): Promise<void> {
 //#endregion
 
 //#region Answers
-async function shouldCreateAnswer(setup: Setup): Promise<void> {
+export async function shouldCreateAnswer(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Creating answer');
@@ -294,7 +288,7 @@ async function shouldCreateAnswer(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteAnswer(setup: Setup): Promise<void> {
+export async function shouldDeleteAnswer(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Deleting answer');
@@ -325,7 +319,7 @@ async function shouldDeleteAnswer(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteAnswers(setup: Setup): Promise<void> {
+export async function shouldDeleteAnswers(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Deleting answers');
@@ -355,7 +349,7 @@ async function shouldDeleteAnswers(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetAnswer(setup: Setup): Promise<void> {
+export async function shouldGetAnswer(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting answer');
@@ -386,7 +380,7 @@ async function shouldGetAnswer(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetAnswers(setup: Setup): Promise<void> {
+export async function shouldGetAnswers(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting answers');
@@ -416,7 +410,7 @@ async function shouldGetAnswers(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldUpdateAnswer(setup: Setup): Promise<void> {
+export async function shouldUpdateAnswer(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Updating answer');
@@ -449,7 +443,7 @@ async function shouldUpdateAnswer(setup: Setup): Promise<void> {
 //#endregion
 
 //#region Languages
-async function shouldCreateLanguage(setup: Setup): Promise<void> {
+export async function shouldCreateLanguage(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Creating language');
@@ -480,7 +474,7 @@ async function shouldCreateLanguage(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteLanguage(setup: Setup): Promise<void> {
+export async function shouldDeleteLanguage(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Deleting language');
@@ -511,7 +505,7 @@ async function shouldDeleteLanguage(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteLanguages(setup: Setup): Promise<void> {
+export async function shouldDeleteLanguages(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting languages');
@@ -541,7 +535,7 @@ async function shouldDeleteLanguages(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetLanguage(setup: Setup): Promise<void> {
+export async function shouldGetLanguage(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting language');
@@ -572,7 +566,7 @@ async function shouldGetLanguage(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetLanguages(setup: Setup): Promise<void> {
+export async function shouldGetLanguages(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting languages');
@@ -602,7 +596,7 @@ async function shouldGetLanguages(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldUpdateLanguage(setup: Setup): Promise<void> {
+export async function shouldUpdateLanguage(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Updating language');
@@ -635,7 +629,7 @@ async function shouldUpdateLanguage(setup: Setup): Promise<void> {
 //#endregion
 
 //#region Problem
-async function shouldCreateProblem(setup: Setup): Promise<void> {
+export async function shouldCreateProblem(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Creating problem');
@@ -666,7 +660,7 @@ async function shouldCreateProblem(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteProblem(setup: Setup): Promise<void> {
+export async function shouldDeleteProblem(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Deleting problem');
@@ -697,7 +691,7 @@ async function shouldDeleteProblem(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteProblems(setup: Setup): Promise<void> {
+export async function shouldDeleteProblems(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Deleting problems');
@@ -727,7 +721,7 @@ async function shouldDeleteProblems(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDownloadProblem(setup: Setup): Promise<void> {
+export async function shouldDownloadProblem(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Downloading problem file(s)');
@@ -765,7 +759,7 @@ async function shouldDownloadProblem(setup: Setup): Promise<void> {
   await browser.close();
 }
 
-async function shouldGetProblem(setup: Setup): Promise<void> {
+export async function shouldGetProblem(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting problem');
@@ -804,7 +798,7 @@ async function shouldGetProblem(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetProblems(setup: Setup): Promise<void> {
+export async function shouldGetProblems(setup: Setup): Promise<void> {
   const logger = Logger.getInstance();
   logger.logInfo('Getting problems');
 
@@ -833,7 +827,7 @@ async function shouldGetProblems(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldRestoreProblem(setup: Setup): Promise<void> {
+export async function shouldRestoreProblem(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Restoring problem');
@@ -864,7 +858,7 @@ async function shouldRestoreProblem(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldRestoreProblems(setup: Setup): Promise<void> {
+export async function shouldRestoreProblems(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Restoring problems');
@@ -894,7 +888,7 @@ async function shouldRestoreProblems(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldUpdateProblem(setup: Setup): Promise<void> {
+export async function shouldUpdateProblem(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Updating problem');
@@ -927,7 +921,7 @@ async function shouldUpdateProblem(setup: Setup): Promise<void> {
 //#endregion
 
 //#region Site
-async function shouldCreateSite(setup: Setup): Promise<void> {
+export async function shouldCreateSite(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Creating site');
@@ -958,7 +952,7 @@ async function shouldCreateSite(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDisableLoginSite(setup: Setup): Promise<void> {
+export async function shouldDisableLoginSite(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Disabling user login in site');
@@ -987,7 +981,7 @@ async function shouldDisableLoginSite(setup: Setup): Promise<void> {
   logger.logInfo('Disabled user login in site with id: %s', site.id);
 }
 
-async function shouldEnableLoginSite(setup: Setup): Promise<void> {
+export async function shouldEnableLoginSite(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Enabling user login in site');
@@ -1016,7 +1010,7 @@ async function shouldEnableLoginSite(setup: Setup): Promise<void> {
   logger.logInfo('Enabled user login in site with id: %s', site.id);
 }
 
-async function shouldForceLogoffSite(setup: Setup): Promise<void> {
+export async function shouldForceLogoffSite(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Forcing user logoff from site');
@@ -1045,7 +1039,7 @@ async function shouldForceLogoffSite(setup: Setup): Promise<void> {
   logger.logInfo('Forced user logoff from site with id: %s', site.id);
 }
 
-async function shouldGetSite(setup: Setup): Promise<void> {
+export async function shouldGetSite(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting site');
@@ -1076,7 +1070,7 @@ async function shouldGetSite(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetSites(setup: Setup): Promise<void> {
+export async function shouldGetSites(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting sites');
@@ -1106,7 +1100,7 @@ async function shouldGetSites(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldUpdateSite(setup: Setup): Promise<void> {
+export async function shouldUpdateSite(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Update site');
@@ -1139,7 +1133,7 @@ async function shouldUpdateSite(setup: Setup): Promise<void> {
 //#endregion
 
 //#region User
-async function shouldCreateUser(setup: Setup): Promise<void> {
+export async function shouldCreateUser(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Creating user');
@@ -1170,7 +1164,7 @@ async function shouldCreateUser(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteUser(setup: Setup): Promise<void> {
+export async function shouldDeleteUser(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Deleting/Disabling user');
@@ -1205,7 +1199,7 @@ async function shouldDeleteUser(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldDeleteUsers(setup: Setup): Promise<void> {
+export async function shouldDeleteUsers(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Deleting users');
@@ -1235,7 +1229,7 @@ async function shouldDeleteUsers(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetUser(setup: Setup): Promise<void> {
+export async function shouldGetUser(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting user');
@@ -1266,7 +1260,7 @@ async function shouldGetUser(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetUsers(setup: Setup): Promise<void> {
+export async function shouldGetUsers(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting users');
@@ -1296,7 +1290,7 @@ async function shouldGetUsers(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldImportUsers(setup: Setup): Promise<void> {
+export async function shouldImportUsers(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Importing users from file');
@@ -1327,7 +1321,7 @@ async function shouldImportUsers(setup: Setup): Promise<void> {
   logger.logInfo('Imported users from file');
 }
 
-async function shouldRestoreUser(setup: Setup): Promise<void> {
+export async function shouldRestoreUser(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Restoring/Enabling user');
@@ -1362,7 +1356,7 @@ async function shouldRestoreUser(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldRestoreUsers(setup: Setup): Promise<void> {
+export async function shouldRestoreUsers(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Restoring users');
@@ -1392,7 +1386,7 @@ async function shouldRestoreUsers(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldUpdateUser(setup: Setup): Promise<void> {
+export async function shouldUpdateUser(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Updating user');
@@ -1425,7 +1419,7 @@ async function shouldUpdateUser(setup: Setup): Promise<void> {
 //#endregion
 
 //#region Reports
-async function shouldDownloadRuns(setup: Setup): Promise<void> {
+export async function shouldDownloadRuns(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Downloading runs');
@@ -1453,7 +1447,7 @@ async function shouldDownloadRuns(setup: Setup): Promise<void> {
   await browser.close();
 }
 
-async function shouldDownloadRun(setup: Setup): Promise<void> {
+export async function shouldDownloadRun(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Downloading run');
@@ -1481,7 +1475,7 @@ async function shouldDownloadRun(setup: Setup): Promise<void> {
   await browser.close();
 }
 
-async function shouldGetRun(setup: Setup): Promise<void> {
+export async function shouldGetRun(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting run');
@@ -1518,7 +1512,7 @@ async function shouldGetRun(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldGetRuns(setup: Setup): Promise<void> {
+export async function shouldGetRuns(setup: Setup): Promise<void> {
   // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting runs');
@@ -1553,7 +1547,7 @@ async function shouldGetRuns(setup: Setup): Promise<void> {
   output.setResult(form);
 }
 
-async function shouldSubmitRun(setup: Setup): Promise<void> {
+export async function shouldSubmitRun(setup: Setup): Promise<void> {
   const logger = Logger.getInstance();
   logger.logInfo('Submitting run');
 
@@ -1585,398 +1579,15 @@ async function shouldSubmitRun(setup: Setup): Promise<void> {
 
 //#endregion
 
-const methods: Record<string, (setup: Setup) => Promise<void>> = {
-  // Contests
-  activateContest: shouldActivateContest,
-  createContest: shouldCreateContest,
-  getContest: shouldGetContest,
-  getContests: shouldGetContests,
-  updateContest: shouldUpdateContest,
-  // Answers
-  createAnswer: shouldCreateAnswer,
-  deleteAnswer: shouldDeleteAnswer,
-  deleteAnswers: shouldDeleteAnswers,
-  getAnswer: shouldGetAnswer,
-  getAnswers: shouldGetAnswers,
-  updateAnswer: shouldUpdateAnswer,
-  // Languages
-  createLanguage: shouldCreateLanguage,
-  deleteLanguage: shouldDeleteLanguage,
-  deleteLanguages: shouldDeleteLanguages,
-  getLanguage: shouldGetLanguage,
-  getLanguages: shouldGetLanguages,
-  updateLanguage: shouldUpdateLanguage,
-  // Problems
-  createProblem: shouldCreateProblem,
-  deleteProblem: shouldDeleteProblem,
-  deleteProblems: shouldDeleteProblems,
-  disableProblem: shouldDeleteProblem,
-  disableProblems: shouldDeleteProblems,
-  downloadProblem: shouldDownloadProblem,
-  enableProblem: shouldRestoreProblem,
-  enableProblems: shouldRestoreProblems,
-  getProblem: shouldGetProblem,
-  getProblems: shouldGetProblems,
-  restoreProblem: shouldRestoreProblem,
-  restoreProblems: shouldRestoreProblems,
-  updateProblem: shouldUpdateProblem,
-  // Sites
-  createSite: shouldCreateSite,
-  disableLoginSite: shouldDisableLoginSite,
-  enableLoginSite: shouldEnableLoginSite,
-  getSite: shouldGetSite,
-  getSites: shouldGetSites,
-  forceLogoffSite: shouldForceLogoffSite,
-  updateSite: shouldUpdateSite,
-  // Users
-  createUser: shouldCreateUser,
-  deleteUser: shouldDeleteUser,
-  deleteUsers: shouldDeleteUsers,
-  disableUser: shouldDeleteUser,
-  disableUsers: shouldDeleteUsers,
-  enableUser: shouldRestoreUser,
-  enableUsers: shouldRestoreUsers,
-  getUser: shouldGetUser,
-  getUsers: shouldGetUsers,
-  importUsers: shouldImportUsers,
-  restoreUser: shouldRestoreUser,
-  restoreUsers: shouldRestoreUsers,
-  updateUser: shouldUpdateUser,
-  // Reports
-  downloadRuns: shouldDownloadRuns,
-  downloadRun: shouldDownloadRun,
-  getRun: shouldGetRun,
-  getRuns: shouldGetRuns,
-  submitRun: shouldSubmitRun
-};
-
-const categorizedMethods = {
-  Contests: [
-    'activateContest',
-    'createContest',
-    'getContest',
-    'getContests',
-    'updateContest'
-  ],
-  Answers: [
-    'createAnswer',
-    'deleteAnswer',
-    'deleteAnswers',
-    'getAnswer',
-    'getAnswers',
-    'updateAnswer'
-  ],
-  Languages: [
-    'createLanguage',
-    'deleteLanguage',
-    'deleteLanguages',
-    'getLanguage',
-    'getLanguages',
-    'updateLanguage'
-  ],
-  Problems: [
-    'createProblem',
-    'deleteProblem',
-    'deleteProblems',
-    'disableProblem',
-    'disableProblems',
-    'downloadProblem',
-    'enableProblem',
-    'enableProblems',
-    'getProblem',
-    'getProblems',
-    'restoreProblem',
-    'restoreProblems',
-    'updateProblem'
-  ],
-  Sites: [
-    'createSite',
-    'disableLoginSite',
-    'enableLoginSite',
-    'getSite',
-    'getSites',
-    'forceLogoffSite',
-    'updateSite'
-  ],
-  Users: [
-    'createUser',
-    'deleteUser',
-    'deleteUsers',
-    'disableUser',
-    'disableUsers',
-    'enableUser',
-    'enableUsers',
-    'getUser',
-    'getUsers',
-    'importUsers',
-    'restoreUser',
-    'restoreUsers',
-    'updateUser'
-  ],
-  Runs: ['downloadRuns', 'downloadRun', 'getRun', 'getRuns', 'submitRun']
-} as const;
-
-const rolePermissions = {
-  System: ['Contests'],
-  Admin: ['Answers', 'Languages', 'Problems', 'Sites', 'Users', 'Runs'],
-  Team: ['Problems', 'Runs']
-} as const;
-
-// Team users are allowed to access only a subset of methods
-const teamAllowedMethods = [
-  'getProblem',
-  'getProblems',
-  'downloadProblem',
-  'getRuns',
-  'getRun',
-  'submitRun'
-];
-
-// Admin users access most methods, but not 'submitRun'
-const adminDeniedMethods = ['submitRun'];
-
-async function interactiveCLI(): Promise<void> {
-  const logger = Logger.getInstance(true);
-  const output = Output.getInstance();
-
-  try {
-    const { role } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'role',
-        message: 'Select user type:',
-        choices: ['System', 'Admin', 'Team']
-      }
-    ]);
-
-    const allowedCategories =
-      rolePermissions[role as keyof typeof rolePermissions];
-
-    let category = 'Contests';
-    if (!(role === 'System' && allowedCategories.length === 1)) {
-      const answer = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'category',
-          message: 'Select a category:',
-          choices: allowedCategories
-        }
-      ]);
-      category = answer.category;
-    }
-
-    let methodNames = [
-      ...categorizedMethods[category as keyof typeof categorizedMethods]
-    ];
-
-    if (role === 'Admin') {
-      methodNames = methodNames.filter(
-        (key) => !adminDeniedMethods.includes(key)
-      );
-    }
-
-    if (role === 'Team') {
-      methodNames = methodNames.filter((key) =>
-        teamAllowedMethods.includes(key)
-      );
-    }
-
-    if (methodNames.length === 0) {
-      logger.logError(
-        'No methods available for this role and category combination.'
-      );
-      process.exit(ExitErrors.CONFIG_VALIDATION);
-    }
-
-    const { method } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'method',
-        message: 'Choose the method:',
-        choices: methodNames
-      }
-    ]);
-
-    const { filePath } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'filePath',
-        message: 'Enter the config file path (JSON):',
-        validate: (input) => (fs.existsSync(input) ? true : 'File not found.')
-      }
-    ]);
-
-    const setup = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Setup;
-
-    setupSchema.parse(setup);
-
-    BASE_URL = setup.config.url;
-    TIMEOUT = 5000;
-
-    const selectedMethod = methods[method];
-
-    if (!selectedMethod) {
-      logger.logError(
-        `Method "${method}" not found in the list of valid methods.`
-      );
-      process.exit(ExitErrors.CONFIG_VALIDATION);
-    }
-
-    await selectedMethod(setup);
-    logger.logInfo('Executed successfully.');
-
-    if (output.isActive && setup.config.resultFilePath) {
-      output.writeFile(setup.config.resultFilePath);
-      logger.logInfo('Result saved at %s', setup.config.resultFilePath);
-    }
-  } catch (e) {
-    if (e instanceof ExitPromptError) {
-      console.log('\nGoodbye!');
-      process.exit(0);
-    }
-
-    if (e instanceof ZodError) {
-      Logger.getInstance().logZodError(e);
-    } else {
-      Logger.getInstance().logError(String(e));
-    }
-
-    process.exit(ExitErrors.CONFIG_VALIDATION);
-  }
-}
-
-function cliMode(): number {
-  program
-    .name('boca-cli')
-    .description('CLI for Boca')
-    .version('0.1.0')
-    .requiredOption('-p, --path <path>', 'path to config file')
-    .addOption(
-      new Option('-m, --method <method>', 'method to execute')
-        .choices(Object.keys(methods))
-        .makeOptionMandatory()
-    )
-    .option(
-      '-t, --timeout <timeout>',
-      'timeout for each test, hook and/or fixture (in milliseconds)',
-      TIMEOUT.toString()
-    )
-    .option('-v, --verbose', 'verbose mode')
-    .parse();
-
-  const { path, method, verbose, timeout } = program.opts();
-  const logger = Logger.getInstance(verbose);
-  const output = Output.getInstance();
-
-  try {
-    fs.accessSync(path);
-  } catch {
-    logger.logError(ReadMessages.CONFIG_NOT_FOUND);
-    process.exit(ExitErrors.ARGS_VALIDATION);
-  }
-
-  const setup = JSON.parse(fs.readFileSync(path, 'utf8')) as Setup;
-
-  try {
-    setupSchema.parse(setup);
-  } catch (e) {
-    if (e instanceof ZodError) logger.logZodError(e);
-    process.exit(ExitErrors.CONFIG_VALIDATION);
-  }
-
-  BASE_URL = setup.config.url;
-  TIMEOUT = parseInt(timeout);
-
-  const func = methods[method];
-  func(setup)
-    .then(() => {
-      logger.logInfo('Done!');
-      if (output.isActive) {
-        logger.logInfo('Output file: %s', setup.config.resultFilePath!);
-        output.writeFile(setup.config.resultFilePath!);
-      }
-    })
-    .catch((e) => {
-      logger.logError(e);
-      process.exit(ExitErrors.CONFIG_VALIDATION);
-    });
-
-  return ExitErrors.OK;
-}
-
 async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
+    const { interactiveCLI } = await import('./cli/interactive'); // Avoid circular dependency
     await interactiveCLI();
   } else {
-    cliMode();
+    const { legacyCLI } = await import('./cli/legacy'); // Avoid circular dependency
+    legacyCLI();
   }
 }
-
-// function main(): number {
-//   program
-//     .name('boca-cli')
-//     .description('CLI for Boca')
-//     .version('0.1.0')
-//     .requiredOption('-p, --path <path>', 'path to config file')
-//     .addOption(
-//       new Option('-m, --method <method>', 'method to execute')
-//         .choices(Object.keys(methods))
-//         .makeOptionMandatory()
-//     )
-//     .option(
-//       '-t, --timeout <timeout>',
-//       'timeout for each test, hook and/or fixture (in milliseconds)',
-//       TIMEOUT.toString()
-//     )
-//     .option('-v, --verbose', 'verbose mode')
-//     .parse();
-
-//   const { path, method, verbose, timeout } = program.opts();
-//   const logger = Logger.getInstance(verbose);
-//   const output = Output.getInstance();
-
-//   // Check if path to config file is set and if it exists
-//   try {
-//     fs.accessSync(path);
-//   } catch {
-//     logger.logError(ReadMessages.CONFIG_NOT_FOUND);
-//     exit(ExitErrors.ARGS_VALIDATION);
-//   }
-
-//   const setup = JSON.parse(fs.readFileSync(path, 'utf8')) as Setup;
-//   try {
-//     setupSchema.parse(setup);
-//   } catch (e) {
-//     if (e instanceof ZodError) logger.logZodError(e);
-//     exit(ExitErrors.CONFIG_VALIDATION);
-//   } finally {
-//     logger.logInfo('Using config file: %s', path);
-//   }
-//   BASE_URL = setup.config.url;
-//   TIMEOUT = parseInt(timeout);
-
-//   const func = methods[method];
-//   func(setup)
-//     .then(() => {
-//       logger.logInfo('Done!');
-//       if (output.isActive) {
-//         logger.logInfo('Output file: %s', setup.config.resultFilePath!);
-//         output.writeFile(setup.config.resultFilePath!);
-//       }
-//     })
-//     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-//     .catch((e) => {
-//       // OBS instanceof ErrorBase didn't work
-//       if (e['code'] !== undefined) {
-//         logger.logErrorBase(e);
-//         exit(e.code);
-//       }
-//       logger.logError(e);
-//       exit(ExitErrors.CONFIG_VALIDATION);
-//     });
-
-//   return ExitErrors.OK;
-// }
 
 main();
