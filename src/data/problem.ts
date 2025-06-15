@@ -33,6 +33,8 @@ export type CreateProblem = z.infer<typeof createProblemSchema>;
 
 export type DownloadProblem = z.infer<typeof downloadProblemSchema>;
 
+export type DownloadTeamProblem = z.infer<typeof downloadTeamProblemSchema>;
+
 export type GetProblem = z.infer<typeof getProblemSchema>;
 
 export type UpdateProblem = z.infer<typeof updateProblemSchema>;
@@ -76,6 +78,10 @@ export const problemSchema = z.object({
   isEnabled: z.union([z.literal('Yes'), z.literal('No')])
 });
 
+export const teamProblemSchema = problemSchema.pick({
+  name: true
+});
+
 export const createProblemSchema = problemSchema.omit({
   isEnabled: true
 });
@@ -107,8 +113,23 @@ export const downloadProblemSchema = problemSchema
     })
   );
 
+export const downloadTeamProblemSchema = problemSchema
+  .pick({
+    name: true
+  })
+  .merge(
+    z.object({
+      downloadDescFile: z.union([z.literal('Yes'), z.literal('No')]).optional(),
+      downloadDir: fileSchema
+    })
+  );
+
 export const getProblemSchema = problemSchema.pick({
   id: true
+});
+
+export const getTeamProblemSchema = problemSchema.pick({
+  name: true
 });
 
 export const updateProblemSchema = createProblemSchema

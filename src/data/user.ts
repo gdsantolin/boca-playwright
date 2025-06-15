@@ -62,7 +62,8 @@ export const userSchema = z.object({
       z.literal('Admin'),
       z.literal('Staff'),
       z.literal('Score'),
-      z.literal('Site')
+      z.literal('Site'),
+      z.literal('System')
     ])
     .optional(),
   isEnabled: z.union([z.literal('Yes'), z.literal('No')]).optional(),

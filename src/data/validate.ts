@@ -31,10 +31,12 @@ import { languageSchema, getLanguageSchema } from './language';
 import {
   createProblemSchema,
   downloadProblemSchema,
+  downloadTeamProblemSchema,
   getProblemSchema,
+  getTeamProblemSchema,
   updateProblemSchema
 } from './problem';
-import { getRunSchema, runSchema } from './run';
+import { getRunSchema, runSchema, submitRunSchema } from './run';
 import { type Setup } from './setup';
 import { getSiteSchema, siteSchema } from './site';
 import {
@@ -157,10 +159,28 @@ export class Validate {
     return this.setup as z.infer<typeof setupType>;
   }
 
+  downloadTeamProblem(): z.infer<typeof setupType> {
+    const setupType = z.object({
+      login: authSchema,
+      problem: downloadTeamProblemSchema
+    });
+    setupType.parse(this.setup);
+    return this.setup as z.infer<typeof setupType>;
+  }
+
   getProblem(): z.infer<typeof setupType> {
     const setupType = z.object({
       login: authSchema,
       problem: getProblemSchema
+    });
+    setupType.parse(this.setup);
+    return this.setup as z.infer<typeof setupType>;
+  }
+
+  getTeamProblem(): z.infer<typeof setupType> {
+    const setupType = z.object({
+      login: authSchema,
+      problem: getTeamProblemSchema
     });
     setupType.parse(this.setup);
     return this.setup as z.infer<typeof setupType>;
@@ -257,6 +277,15 @@ export class Validate {
   getRuns(): z.infer<typeof setupType> {
     const setupType = z.object({
       login: authSchema
+    });
+    setupType.parse(this.setup);
+    return this.setup as z.infer<typeof setupType>;
+  }
+
+  submitRun(): z.infer<typeof setupType> {
+    const setupType = z.object({
+      login: authSchema,
+      run: submitRunSchema
     });
     setupType.parse(this.setup);
     return this.setup as z.infer<typeof setupType>;

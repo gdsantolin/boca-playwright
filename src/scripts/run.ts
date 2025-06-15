@@ -22,7 +22,8 @@ import { type Locator, type Page } from 'playwright';
 import * as fs from 'fs';
 import { BASE_URL } from '../index';
 import * as path from 'path';
-import { type RunType, type GetRun } from '../data/run';
+import { type RunType, type GetRun, RunTypeTeam, SubmitRun } from '../data/run';
+import { dialogHandler } from '../utils/handlers';
 
 // const statusArr = ['NA', 'YES', 'NO_Compilation', 'NO_Runtime', 'NO_Timelimit', 'NO_Presentation', 'NO_Wrong', 'NO_Contact', 'NO_Name']
 
@@ -147,7 +148,7 @@ export async function getRun(
     has: await page.locator('td:nth-of-type(1)', { hasText: runId })
   });
 
-  if (row == null) throw new Error('Run not found');
+  if ((await row.count()) === 0) throw new Error('Run not found');
 
   const id = await row.locator('td:nth-of-type(1)').textContent();
   const site = await row.locator('td:nth-of-type(2)').textContent();
@@ -205,4 +206,88 @@ export async function getRuns(page: Page): Promise<RunType[]> {
     });
   }
   return runs;
+}
+
+export async function getTeamRun(
+  page: Page,
+  runId: GetRun['id']
+): Promise<RunTypeTeam> {
+  await page.goto(`${BASE_URL}/team/run.php`);
+  // Wait for load state
+  await page.waitForLoadState('domcontentloaded');
+
+  const row = await page.locator('tr', {
+    has: await page.locator('td:nth-of-type(1)', { hasText: runId })
+  });
+
+  if ((await row.count()) === 0) throw new Error('Run not found');
+
+  const id = await row.locator('td:nth-of-type(1)').textContent();
+  const time = await row.locator('td:nth-of-type(2)').textContent();
+  const problem = await row.locator('td:nth-of-type(3)').textContent();
+  const language = await row.locator('td:nth-of-type(4)').textContent();
+  const answer = await row.locator('td:nth-of-type(5)').textContent();
+  const file = await row.locator('td:nth-of-type(6) > a').textContent();
+
+  return {
+    id: id?.trim() ?? '',
+    time: time ?? '',
+    problem: problem ?? '',
+    language: language ?? '',
+    answer: answer ?? '',
+    file: file ?? ''
+  };
+}
+
+export async function getTeamRuns(page: Page): Promise<RunTypeTeam[]> {
+  await page.goto(`${BASE_URL}/team/run.php`);
+  // Wait for load state
+  await page.waitForLoadState('domcontentloaded');
+
+  const rows = await page
+    .locator('tr', {
+      has: await page.locator('td:nth-of-type(1)', { hasText: /\d+/ })
+    })
+    .all();
+
+  const runs: RunTypeTeam[] = [];
+
+  for (const row of rows) {
+    const id = await row.locator('td:nth-of-type(1)').textContent();
+    const time = await row.locator('td:nth-of-type(2)').textContent();
+    const problem = await row.locator('td:nth-of-type(3)').textContent();
+    const language = await row.locator('td:nth-of-type(4)').textContent();
+    const answer = await row.locator('td:nth-of-type(5)').textContent();
+    const file = await row.locator('td:nth-of-type(6) > a').textContent();
+
+    runs.push({
+      id: id?.trim() ?? '',
+      time: time ?? '',
+      problem: problem ?? '',
+      language: language ?? '',
+      answer: answer ?? '',
+      file: file ?? ''
+    });
+  }
+  return runs;
+}
+
+// Team-only method
+export async function submitRun(
+  page: Page,
+  run: SubmitRun
+): Promise<RunTypeTeam[]> {
+  await page.goto(`${BASE_URL}/team/run.php`);
+  await page.waitForLoadState('domcontentloaded');
+
+  // Fill the form
+  await page.locator('select[name="problem"]').selectOption(run.problem);
+  await page.locator('select[name="language"]').selectOption(run.language);
+  await page
+    .locator('input[type="file"][name="sourcefile"]')
+    .setInputFiles(run.filePath);
+
+  page.once('dialog', dialogHandler);
+  await page.locator('input[type="submit"][name="Submit"]').click();
+  return await getTeamRuns(page);
 }

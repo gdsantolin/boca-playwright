@@ -5,8 +5,8 @@
         "runPath": "./runs"
     },
     "login": {
-        "username": "admin",
+        "username": "team",
         "password": "boca",
-        "type": "Admin"
+        "type": "Team"
     }
 }

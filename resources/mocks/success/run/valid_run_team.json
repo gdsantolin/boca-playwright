@@ -4,9 +4,9 @@
         "resultFilePath": "./resources/result.json"
     },
     "login": {
-        "username": "admin",
+        "username": "team",
         "password": "boca",
-        "type": "Admin"
+        "type": "Team"
     },
     "run": {
         "id": "344970003"

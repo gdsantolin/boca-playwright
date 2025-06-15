@@ -12,6 +12,10 @@
     "admin": {
       "username": "admin",
       "password": "boca"
+    },
+    "team": {
+      "username": "team",
+      "password": "boca"
     }
   },
   "users": [

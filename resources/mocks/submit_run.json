@@ -4,11 +4,13 @@
     "resultFilePath": "./resources/result.json"
   },
   "login": {
-    "username": "admin",
+    "username": "team",
     "password": "boca",
-    "type": "Admin"
+    "type": "Team"
   },
-  "user": {
-    "id": "2019202359"
+  "run": {
+    "problem": "L1_1",
+    "language": "C",
+    "filePath": "resources/run.c"
   }
 }

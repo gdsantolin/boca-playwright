@@ -26,7 +26,7 @@ import { contestSchema } from './contest';
 import { answerSchema } from './answer';
 import { languageSchema } from './language';
 import { problemSchema } from './problem';
-import { getRunSchema, runSchema } from './run';
+import { getRunSchema, runSchema, submitRunSchema } from './run';
 import { siteSchema } from './site';
 import { importUsersSchema, userSchema } from './user';
 import { ReadMessages } from '../errors/read_errors';
@@ -68,5 +68,5 @@ export const setupSchema = z.object({
   problem: problemSchema.partial().optional(),
   site: siteSchema.partial().optional(),
   user: userSchema.partial().optional(),
-  run: getRunSchema.partial().optional()
+  run: z.union([submitRunSchema, getRunSchema.partial()]).optional()
 });

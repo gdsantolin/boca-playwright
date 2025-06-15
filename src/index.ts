@@ -21,7 +21,6 @@
 import { Option, program } from 'commander';
 import * as fs from 'fs';
 import { chromium } from 'playwright';
-import { exit } from 'process';
 import { ZodError } from 'zod';
 import { type Auth } from './data/auth';
 import { type CreateContest, type UpdateContest } from './data/contest';
@@ -62,8 +61,10 @@ import {
   deleteProblem,
   deleteProblems,
   downloadProblem,
+  downloadTeamProblem,
   getProblem,
   getProblems,
+  getTeamProblem,
   restoreProblem,
   restoreProblems,
   updateProblem
@@ -88,7 +89,17 @@ import {
   restoreUsers,
   updateUser
 } from './scripts/user';
-import { downloadRun, downloadRuns, getRun, getRuns } from './scripts/run';
+import {
+  downloadRun,
+  downloadRuns,
+  getRun,
+  getRuns,
+  getTeamRun,
+  getTeamRuns,
+  submitRun
+} from './scripts/run';
+import inquirer from 'inquirer';
+import { ExitPromptError } from '@inquirer/core';
 
 const STEP_DURATION = 100;
 const HEADLESS = true;
@@ -723,9 +734,8 @@ async function shouldDownloadProblem(setup: Setup): Promise<void> {
 
   // validate setup file with zod
   const validate = new Validate(setup);
-  const setupValidated = validate.downloadProblem();
-  const admin: Auth = setupValidated.login;
-  const problem = setupValidated.problem;
+  const setupValidated = validate.checkAuthentication();
+  const auth: Auth = setupValidated.login;
 
   const browser = await chromium.launch({
     headless: HEADLESS,
@@ -736,13 +746,23 @@ async function shouldDownloadProblem(setup: Setup): Promise<void> {
   // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, admin);
-  await validate.checkUserType(page, 'Admin');
-  await downloadProblem(page, problem);
+  await authenticateUser(page, auth);
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
+  let problem;
+  if (userType == 'Admin') {
+    problem = validate.downloadProblem().problem;
+    await downloadProblem(page, problem);
+    logger.logInfo('Downloaded file(s) of problem with id: %s', problem.id);
+  } else {
+    problem = validate.downloadTeamProblem().problem;
+    await downloadTeamProblem(page, problem);
+    logger.logInfo('Downloaded file(s) of problem with name: %s', problem.name);
+  }
+
   // Dispose context once it's no longer needed.
   await context.close();
   await browser.close();
-  logger.logInfo('Downloaded file(s) of problem with id: %s', problem.id);
 }
 
 async function shouldGetProblem(setup: Setup): Promise<void> {
@@ -752,9 +772,7 @@ async function shouldGetProblem(setup: Setup): Promise<void> {
 
   // validate setup file with zod
   const validate = new Validate(setup);
-  const setupValidated = validate.getProblem();
-  const admin: Auth = setupValidated.login;
-  const problem = setupValidated.problem;
+  const auth = validate.checkAuthentication().login;
 
   const browser = await chromium.launch({
     headless: HEADLESS,
@@ -765,43 +783,52 @@ async function shouldGetProblem(setup: Setup): Promise<void> {
   // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, admin);
-  await validate.checkUserType(page, 'Admin');
-  const form = await getProblem(page, problem.id);
+  await authenticateUser(page, auth);
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
+
+  let form, problem;
+  if (userType == 'Admin') {
+    problem = validate.getProblem().problem;
+    form = await getProblem(page, problem.id);
+    logger.logInfo('Found problem with id: %s', form.id);
+  } else {
+    problem = validate.getTeamProblem().problem;
+    form = await getTeamProblem(page, problem.name);
+    logger.logInfo('Found problem with name: %s', form.name);
+  }
   // Dispose context once it's no longer needed.
   await context.close();
   await browser.close();
-  logger.logInfo('Found problem with id: %s', form.id);
   const output = Output.getInstance();
   output.setResult(form);
 }
 
 async function shouldGetProblems(setup: Setup): Promise<void> {
-  // instantiate logger
   const logger = Logger.getInstance();
   logger.logInfo('Getting problems');
 
-  // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.checkAuthentication();
-  const admin: Auth = setupValidated.login;
+  const auth: Auth = setupValidated.login;
 
   const browser = await chromium.launch({
     headless: HEADLESS,
     slowMo: STEP_DURATION
   });
-  // Create a new incognito browser context
   const context = await browser.newContext();
-  // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, admin);
-  await validate.checkUserType(page, 'Admin');
-  const form = await getProblems(page);
-  // Dispose context once it's no longer needed.
+
+  await authenticateUser(page, auth);
+
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
+  const form = await getProblems(page, userType);
+
   await context.close();
   await browser.close();
-  logger.logInfo('Found %s problems', form.length);
+
   const output = Output.getInstance();
   output.setResult(form);
 }
@@ -1462,7 +1489,7 @@ async function shouldGetRun(setup: Setup): Promise<void> {
   // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.getRun();
-  const admin: Auth = setupValidated.login;
+  const auth: Auth = setupValidated.login;
   const runId = setupValidated.run.id;
 
   const browser = await chromium.launch({
@@ -1474,8 +1501,15 @@ async function shouldGetRun(setup: Setup): Promise<void> {
   // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, admin);
-  const form = await getRun(page, runId);
+  await authenticateUser(page, auth);
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
+  let form;
+  if (userType == 'Admin') {
+    form = await getRun(page, runId);
+  } else {
+    form = await getTeamRun(page, runId);
+  }
   // Dispose context once it's no longer needed.
   await context.close();
   await browser.close();
@@ -1492,7 +1526,7 @@ async function shouldGetRuns(setup: Setup): Promise<void> {
   // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.getRuns();
-  const admin: Auth = setupValidated.login;
+  const auth: Auth = setupValidated.login;
 
   const browser = await chromium.launch({
     headless: HEADLESS,
@@ -1502,12 +1536,49 @@ async function shouldGetRuns(setup: Setup): Promise<void> {
   const context = await browser.newContext();
   // Create a new page inside context.
   const page = await context.newPage();
-  await authenticateUser(page, admin);
-  const form = await getRuns(page);
+  await authenticateUser(page, auth);
+  const userType = auth.type;
+  await validate.checkUserType(page, userType);
+  let form;
+  if (userType == 'Admin') {
+    form = await getRuns(page);
+  } else {
+    form = await getTeamRuns(page);
+  }
   // Dispose context once it's no longer needed.
   await context.close();
   await browser.close();
   logger.logInfo('Found %s runs', form.length);
+  const output = Output.getInstance();
+  output.setResult(form);
+}
+
+async function shouldSubmitRun(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Submitting run');
+
+  // validate setup file with zod
+  const validate = new Validate(setup);
+  const setupValidated = validate.submitRun();
+  const team: Auth = setupValidated.login;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+  // Create a new incognito browser context
+  const context = await browser.newContext();
+  // Create a new page inside context.
+  const page = await context.newPage();
+  await authenticateUser(page, team);
+  const userType = team.type;
+  await validate.checkUserType(page, userType);
+
+  const form = await submitRun(page, setupValidated.run);
+  // Dispose context once it's no longer needed.
+  await context.close();
+  await browser.close();
+  //logger.logInfo('Created run with id: %s', form.id);
   const output = Output.getInstance();
   output.setResult(form);
 }
@@ -1575,10 +1646,206 @@ const methods: Record<string, (setup: Setup) => Promise<void>> = {
   downloadRuns: shouldDownloadRuns,
   downloadRun: shouldDownloadRun,
   getRun: shouldGetRun,
-  getRuns: shouldGetRuns
+  getRuns: shouldGetRuns,
+  submitRun: shouldSubmitRun
 };
 
-function main(): number {
+const categorizedMethods = {
+  Contests: [
+    'activateContest',
+    'createContest',
+    'getContest',
+    'getContests',
+    'updateContest'
+  ],
+  Answers: [
+    'createAnswer',
+    'deleteAnswer',
+    'deleteAnswers',
+    'getAnswer',
+    'getAnswers',
+    'updateAnswer'
+  ],
+  Languages: [
+    'createLanguage',
+    'deleteLanguage',
+    'deleteLanguages',
+    'getLanguage',
+    'getLanguages',
+    'updateLanguage'
+  ],
+  Problems: [
+    'createProblem',
+    'deleteProblem',
+    'deleteProblems',
+    'disableProblem',
+    'disableProblems',
+    'downloadProblem',
+    'enableProblem',
+    'enableProblems',
+    'getProblem',
+    'getProblems',
+    'restoreProblem',
+    'restoreProblems',
+    'updateProblem'
+  ],
+  Sites: [
+    'createSite',
+    'disableLoginSite',
+    'enableLoginSite',
+    'getSite',
+    'getSites',
+    'forceLogoffSite',
+    'updateSite'
+  ],
+  Users: [
+    'createUser',
+    'deleteUser',
+    'deleteUsers',
+    'disableUser',
+    'disableUsers',
+    'enableUser',
+    'enableUsers',
+    'getUser',
+    'getUsers',
+    'importUsers',
+    'restoreUser',
+    'restoreUsers',
+    'updateUser'
+  ],
+  Runs: ['downloadRuns', 'downloadRun', 'getRun', 'getRuns', 'submitRun']
+} as const;
+
+const rolePermissions = {
+  System: ['Contests'],
+  Admin: ['Answers', 'Languages', 'Problems', 'Sites', 'Users', 'Runs'],
+  Team: ['Problems', 'Runs']
+} as const;
+
+// Team users are allowed to access only a subset of methods
+const teamAllowedMethods = [
+  'getProblem',
+  'getProblems',
+  'downloadProblem',
+  'getRuns',
+  'getRun',
+  'submitRun'
+];
+
+// Admin users access most methods, but not 'submitRun'
+const adminDeniedMethods = ['submitRun'];
+
+async function interactiveCLI(): Promise<void> {
+  const logger = Logger.getInstance(true);
+  const output = Output.getInstance();
+
+  try {
+    const { role } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'role',
+        message: 'Select user type:',
+        choices: ['System', 'Admin', 'Team']
+      }
+    ]);
+
+    const allowedCategories =
+      rolePermissions[role as keyof typeof rolePermissions];
+
+    let category = 'Contests';
+    if (!(role === 'System' && allowedCategories.length === 1)) {
+      const answer = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'category',
+          message: 'Select a category:',
+          choices: allowedCategories
+        }
+      ]);
+      category = answer.category;
+    }
+
+    let methodNames = [
+      ...categorizedMethods[category as keyof typeof categorizedMethods]
+    ];
+
+    if (role === 'Admin') {
+      methodNames = methodNames.filter(
+        (key) => !adminDeniedMethods.includes(key)
+      );
+    }
+
+    if (role === 'Team') {
+      methodNames = methodNames.filter((key) =>
+        teamAllowedMethods.includes(key)
+      );
+    }
+
+    if (methodNames.length === 0) {
+      logger.logError(
+        'No methods available for this role and category combination.'
+      );
+      process.exit(ExitErrors.CONFIG_VALIDATION);
+    }
+
+    const { method } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'method',
+        message: 'Choose the method:',
+        choices: methodNames
+      }
+    ]);
+
+    const { filePath } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'filePath',
+        message: 'Enter the config file path (JSON):',
+        validate: (input) => (fs.existsSync(input) ? true : 'File not found.')
+      }
+    ]);
+
+    const setup = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Setup;
+
+    setupSchema.parse(setup);
+
+    BASE_URL = setup.config.url;
+    TIMEOUT = 5000;
+
+    const selectedMethod = methods[method];
+
+    if (!selectedMethod) {
+      logger.logError(
+        `Method "${method}" not found in the list of valid methods.`
+      );
+      process.exit(ExitErrors.CONFIG_VALIDATION);
+    }
+
+    await selectedMethod(setup);
+    logger.logInfo('Executed successfully.');
+
+    if (output.isActive && setup.config.resultFilePath) {
+      output.writeFile(setup.config.resultFilePath);
+      logger.logInfo('Result saved at %s', setup.config.resultFilePath);
+    }
+  } catch (e) {
+    if (e instanceof ExitPromptError) {
+      console.log('\nGoodbye!');
+      process.exit(0);
+    }
+
+    if (e instanceof ZodError) {
+      Logger.getInstance().logZodError(e);
+    } else {
+      Logger.getInstance().logError(String(e));
+    }
+
+    process.exit(ExitErrors.CONFIG_VALIDATION);
+  }
+}
+
+function cliMode(): number {
   program
     .name('boca-cli')
     .description('CLI for Boca')
@@ -1601,23 +1868,22 @@ function main(): number {
   const logger = Logger.getInstance(verbose);
   const output = Output.getInstance();
 
-  // Check if path to config file is set and if it exists
   try {
     fs.accessSync(path);
   } catch {
     logger.logError(ReadMessages.CONFIG_NOT_FOUND);
-    exit(ExitErrors.ARGS_VALIDATION);
+    process.exit(ExitErrors.ARGS_VALIDATION);
   }
 
   const setup = JSON.parse(fs.readFileSync(path, 'utf8')) as Setup;
+
   try {
     setupSchema.parse(setup);
   } catch (e) {
     if (e instanceof ZodError) logger.logZodError(e);
-    exit(ExitErrors.CONFIG_VALIDATION);
-  } finally {
-    logger.logInfo('Using config file: %s', path);
+    process.exit(ExitErrors.CONFIG_VALIDATION);
   }
+
   BASE_URL = setup.config.url;
   TIMEOUT = parseInt(timeout);
 
@@ -1630,18 +1896,87 @@ function main(): number {
         output.writeFile(setup.config.resultFilePath!);
       }
     })
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     .catch((e) => {
-      // OBS instanceof ErrorBase didn't work
-      if (e['code'] !== undefined) {
-        logger.logErrorBase(e);
-        exit(e.code);
-      }
       logger.logError(e);
-      exit(ExitErrors.CONFIG_VALIDATION);
+      process.exit(ExitErrors.CONFIG_VALIDATION);
     });
 
   return ExitErrors.OK;
 }
+
+async function main() {
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    await interactiveCLI();
+  } else {
+    cliMode();
+  }
+}
+
+// function main(): number {
+//   program
+//     .name('boca-cli')
+//     .description('CLI for Boca')
+//     .version('0.1.0')
+//     .requiredOption('-p, --path <path>', 'path to config file')
+//     .addOption(
+//       new Option('-m, --method <method>', 'method to execute')
+//         .choices(Object.keys(methods))
+//         .makeOptionMandatory()
+//     )
+//     .option(
+//       '-t, --timeout <timeout>',
+//       'timeout for each test, hook and/or fixture (in milliseconds)',
+//       TIMEOUT.toString()
+//     )
+//     .option('-v, --verbose', 'verbose mode')
+//     .parse();
+
+//   const { path, method, verbose, timeout } = program.opts();
+//   const logger = Logger.getInstance(verbose);
+//   const output = Output.getInstance();
+
+//   // Check if path to config file is set and if it exists
+//   try {
+//     fs.accessSync(path);
+//   } catch {
+//     logger.logError(ReadMessages.CONFIG_NOT_FOUND);
+//     exit(ExitErrors.ARGS_VALIDATION);
+//   }
+
+//   const setup = JSON.parse(fs.readFileSync(path, 'utf8')) as Setup;
+//   try {
+//     setupSchema.parse(setup);
+//   } catch (e) {
+//     if (e instanceof ZodError) logger.logZodError(e);
+//     exit(ExitErrors.CONFIG_VALIDATION);
+//   } finally {
+//     logger.logInfo('Using config file: %s', path);
+//   }
+//   BASE_URL = setup.config.url;
+//   TIMEOUT = parseInt(timeout);
+
+//   const func = methods[method];
+//   func(setup)
+//     .then(() => {
+//       logger.logInfo('Done!');
+//       if (output.isActive) {
+//         logger.logInfo('Output file: %s', setup.config.resultFilePath!);
+//         output.writeFile(setup.config.resultFilePath!);
+//       }
+//     })
+//     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+//     .catch((e) => {
+//       // OBS instanceof ErrorBase didn't work
+//       if (e['code'] !== undefined) {
+//         logger.logErrorBase(e);
+//         exit(e.code);
+//       }
+//       logger.logError(e);
+//       exit(ExitErrors.CONFIG_VALIDATION);
+//     });
+
+//   return ExitErrors.OK;
+// }
 
 main();

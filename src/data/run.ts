@@ -24,7 +24,11 @@ export type Run = z.infer<typeof runSchema>;
 
 export type RunType = z.infer<typeof runType>;
 
+export type RunTypeTeam = z.infer<typeof runTypeTeam>;
+
 export type GetRun = z.infer<typeof getRunSchema>;
+
+export type SubmitRun = z.infer<typeof submitRunSchema>;
 
 export const runSchema = z.object({
   runPath: z.string()
@@ -32,6 +36,12 @@ export const runSchema = z.object({
 
 export const getRunSchema = z.object({
   id: z.string()
+});
+
+export const submitRunSchema = z.object({
+  problem: z.string(),
+  language: z.string(),
+  filePath: z.string()
 });
 
 export const runType = z.object({
@@ -44,3 +54,15 @@ export const runType = z.object({
   status: z.string(),
   answer: z.string()
 });
+
+export const runTypeTeam = runType
+  .pick({
+    id: true,
+    time: true,
+    problem: true,
+    language: true,
+    answer: true
+  })
+  .extend({
+    file: z.string()
+  });

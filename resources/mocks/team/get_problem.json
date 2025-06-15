@@ -3,11 +3,11 @@
     "url": "localhost:8000/boca"
   },
   "login": {
-    "username": "admin",
+    "username": "team",
     "password": "boca",
-    "type": "Admin"
+    "type": "Team"
   },
   "problem": {
-    "id": "1001"
+    "name": "L1_1"
   }
 }
