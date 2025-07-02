@@ -13,20 +13,28 @@ import {
   teamAllowedMethods
 } from './permissions';
 import * as fs from 'fs';
+import { getUserRoleFromLogin } from '../scripts/auth';
 
 export async function interactiveCLI(): Promise<void> {
   const logger = Logger.getInstance(true);
   const output = Output.getInstance();
 
   try {
-    const { role } = await inquirer.prompt([
+    const { username, password } = await inquirer.prompt([
       {
-        type: 'list',
-        name: 'role',
-        message: 'Select user type:',
-        choices: ['System', 'Admin', 'Team']
+        type: 'input',
+        name: 'username',
+        message: 'Enter your BOCA username:'
+      },
+      {
+        type: 'password',
+        name: 'password',
+        message: 'Enter your password:'
       }
     ]);
+
+    const { role } = await getUserRoleFromLogin(username, password);
+    logger.logInfo(`User role detected: ${role}`);
 
     const allowedCategories =
       rolePermissions[role as keyof typeof rolePermissions];

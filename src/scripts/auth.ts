@@ -18,7 +18,7 @@
 //
 // ========================================================================
 
-import { type Page } from 'playwright';
+import { chromium, type Page } from 'playwright';
 import { type Auth } from '../data/auth';
 import { BASE_URL } from '../index';
 
@@ -30,4 +30,41 @@ export async function authenticateUser(page: Page, user: Auth): Promise<void> {
   await page.locator('input[name="name"]').fill(user.username);
   await page.locator('input[name="password"]').fill(user.password);
   await page.locator('input[name="password"]').press('Enter');
+}
+
+type Role = 'System' | 'Admin' | 'Team';
+
+export async function getUserRoleFromLogin(
+  username: string,
+  password: string
+): Promise<{ role: Role; page: Page }> {
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await page.goto(BASE_URL + '/');
+  await page.waitForLoadState('domcontentloaded');
+
+  await page.locator('input[name="name"]').fill(username);
+  await page.locator('input[name="password"]').fill(password);
+  await page.locator('input[name="password"]').press('Enter');
+
+  const menuLocator = page.locator('a.menu');
+  await menuLocator.first().waitFor();
+
+  const menuItemCount = await menuLocator.count();
+  let role: Role;
+
+  // Determine role based on the number of menu items
+  if (menuItemCount === 3) {
+    role = 'System';
+  } else if (menuItemCount === 8) {
+    role = 'Team';
+  } else if (menuItemCount === 16) {
+    role = 'Admin';
+  } else {
+    throw new Error(`Unexpected number of menu items: ${menuItemCount}`);
+  }
+
+  return { role, page };
 }

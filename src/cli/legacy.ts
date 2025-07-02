@@ -49,9 +49,6 @@ export function legacyCLI(): number {
   }
 
   TIMEOUT = parseInt(timeout);
-console.log('Method from CLI:', method);
-console.log('Available methods:', Object.keys(methods));
-console.log('methods[method]:', methods[method]);
   const func = methods[method];
   func(setup)
     .then(() => {
