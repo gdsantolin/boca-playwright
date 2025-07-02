@@ -5,7 +5,8 @@
   },
   "login": {
     "username": "admin",
-    "password": "boca"
+    "password": "boca",
+    "type": "Admin"
   },
   "answer": {
     "description": "EXCELLENT - Total percentage score of 100%",
