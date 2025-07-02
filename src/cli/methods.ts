@@ -45,7 +45,12 @@ import {
   shouldDownloadRun,
   shouldGetRun,
   shouldGetRuns,
-  shouldSubmitRun
+  shouldSubmitRun,
+  shouldDownloadTeamProblem,
+  shouldGetTeamProblem,
+  shouldGetTeamProblems,
+  shouldGetTeamRun,
+  shouldGetTeamRuns
 } from '..';
 import { Setup } from '../data/setup';
 
@@ -84,6 +89,10 @@ export const methods: Record<string, (setup: Setup) => Promise<void>> = {
   restoreProblem: shouldRestoreProblem,
   restoreProblems: shouldRestoreProblems,
   updateProblem: shouldUpdateProblem,
+  // Problems - Team
+  downloadTeamProblem: shouldDownloadTeamProblem,
+  getTeamProblem: shouldGetTeamProblem,
+  getTeamProblems: shouldGetTeamProblems,
   // Sites
   createSite: shouldCreateSite,
   disableLoginSite: shouldDisableLoginSite,
@@ -106,10 +115,13 @@ export const methods: Record<string, (setup: Setup) => Promise<void>> = {
   restoreUser: shouldRestoreUser,
   restoreUsers: shouldRestoreUsers,
   updateUser: shouldUpdateUser,
-  // Reports
+  // Runs
   downloadRuns: shouldDownloadRuns,
   downloadRun: shouldDownloadRun,
   getRun: shouldGetRun,
   getRuns: shouldGetRuns,
+  // Runs - Team
+  getTeamRun: shouldGetTeamRun,
+  getTeamRuns: shouldGetTeamRuns,
   submitRun: shouldSubmitRun
 };

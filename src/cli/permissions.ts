@@ -23,6 +23,7 @@ export const categorizedMethods = {
     'updateLanguage'
   ],
   Problems: [
+    // Admin methods
     'createProblem',
     'deleteProblem',
     'deleteProblems',
@@ -35,7 +36,11 @@ export const categorizedMethods = {
     'getProblems',
     'restoreProblem',
     'restoreProblems',
-    'updateProblem'
+    'updateProblem',
+    // Team methods
+    'getTeamProblem',
+    'getTeamProblems',
+    'downloadTeamProblem'
   ],
   Sites: [
     'createSite',
@@ -61,7 +66,16 @@ export const categorizedMethods = {
     'restoreUsers',
     'updateUser'
   ],
-  Runs: ['downloadRuns', 'downloadRun', 'getRun', 'getRuns', 'submitRun']
+  Runs: [
+    'downloadRuns',
+    'downloadRun',
+    'getRun',
+    'getRuns',
+    // Team methods
+    'getTeamRun',
+    'getTeamRuns',
+    'submitRun'
+  ]
 } as const;
 
 export const rolePermissions = {
@@ -72,13 +86,20 @@ export const rolePermissions = {
 
 // Team users are allowed to access only a subset of methods
 export const teamAllowedMethods = [
-  'getProblem',
-  'getProblems',
-  'downloadProblem',
-  'getRuns',
-  'getRun',
+  'getTeamProblem',
+  'getTeamProblems',
+  'downloadTeamProblem',
+  'getTeamRun',
+  'getTeamRuns',
   'submitRun'
 ];
 
-// Admin users access most methods, but not 'submitRun'
-export const adminDeniedMethods = ['submitRun'];
+// Admin users access most methods except team-specific ones
+export const adminDeniedMethods = [
+  'submitRun',
+  'getTeamProblem',
+  'getTeamProblems',
+  'downloadTeamProblem',
+  'getTeamRun',
+  'getTeamRuns'
+];

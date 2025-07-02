@@ -61,6 +61,7 @@ import {
   getProblem,
   getProblems,
   getTeamProblem,
+  getTeamProblems,
   restoreProblem,
   restoreProblems,
   updateProblem
@@ -722,39 +723,28 @@ export async function shouldDeleteProblems(setup: Setup): Promise<void> {
 }
 
 export async function shouldDownloadProblem(setup: Setup): Promise<void> {
-  // instantiate logger
   const logger = Logger.getInstance();
-  logger.logInfo('Downloading problem file(s)');
+  logger.logInfo('Downloading admin problem file(s)');
 
-  // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.checkAuthentication();
   const auth: Auth = setupValidated.login;
+  const problem = validate.downloadProblem().problem;
 
   const browser = await chromium.launch({
     headless: HEADLESS,
     slowMo: STEP_DURATION
   });
-  // Create a new incognito browser context
   const context = await browser.newContext();
-  // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, auth);
-  const userType = auth.type;
-  await validate.checkUserType(page, userType);
-  let problem;
-  if (userType == 'Admin') {
-    problem = validate.downloadProblem().problem;
-    await downloadProblem(page, problem);
-    logger.logInfo('Downloaded file(s) of problem with id: %s', problem.id);
-  } else {
-    problem = validate.downloadTeamProblem().problem;
-    await downloadTeamProblem(page, problem);
-    logger.logInfo('Downloaded file(s) of problem with name: %s', problem.name);
-  }
 
-  // Dispose context once it's no longer needed.
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Admin');
+
+  await downloadProblem(page, problem);
+  logger.logInfo('Downloaded file(s) of problem with id: %s', problem.id);
+
   await context.close();
   await browser.close();
 }
@@ -767,33 +757,25 @@ export async function shouldGetProblem(setup: Setup): Promise<void> {
   // validate setup file with zod
   const validate = new Validate(setup);
   const auth = validate.checkAuthentication().login;
+  const problem = validate.getProblem().problem;
 
   const browser = await chromium.launch({
     headless: HEADLESS,
     slowMo: STEP_DURATION
   });
-  // Create a new incognito browser context
   const context = await browser.newContext();
-  // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
-  await authenticateUser(page, auth);
-  const userType = auth.type;
-  await validate.checkUserType(page, userType);
 
-  let form, problem;
-  if (userType == 'Admin') {
-    problem = validate.getProblem().problem;
-    form = await getProblem(page, problem.id);
-    logger.logInfo('Found problem with id: %s', form.id);
-  } else {
-    problem = validate.getTeamProblem().problem;
-    form = await getTeamProblem(page, problem.name);
-    logger.logInfo('Found problem with name: %s', form.name);
-  }
-  // Dispose context once it's no longer needed.
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Admin');
+
+  const form = await getProblem(page, problem.id);
+  logger.logInfo('Found problem with id: %s', form.id);
+
   await context.close();
   await browser.close();
+
   const output = Output.getInstance();
   output.setResult(form);
 }
@@ -816,10 +798,92 @@ export async function shouldGetProblems(setup: Setup): Promise<void> {
 
   await authenticateUser(page, auth);
 
-  const userType = auth.type;
-  await validate.checkUserType(page, userType);
-  const form = await getProblems(page, userType);
+  await validate.checkUserType(page, 'Admin');
+  const form = await getProblems(page);
 
+  await context.close();
+  await browser.close();
+
+  const output = Output.getInstance();
+  output.setResult(form);
+}
+
+export async function shouldDownloadTeamProblem(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Downloading team problem file(s)');
+
+  const validate = new Validate(setup);
+  const setupValidated = validate.checkAuthentication();
+  const auth: Auth = setupValidated.login;
+  const problem = validate.downloadTeamProblem().problem;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Team');
+
+  await downloadTeamProblem(page, problem);
+  logger.logInfo('Downloaded file(s) of problem with name: %s', problem.name);
+
+  await context.close();
+  await browser.close();
+}
+
+export async function shouldGetTeamProblem(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Getting team problem');
+
+  const validate = new Validate(setup);
+  const auth = validate.checkAuthentication().login;
+  const problem = validate.getTeamProblem().problem;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Team');
+
+  const form = await getTeamProblem(page, problem.name);
+  logger.logInfo('Found problem with name: %s', form.name);
+
+  await context.close();
+  await browser.close();
+
+  const output = Output.getInstance();
+  output.setResult(form);
+}
+
+export async function shouldGetTeamProblems(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Getting team problems');
+
+  const validate = new Validate(setup);
+  const setupValidated = validate.checkAuthentication();
+  const auth: Auth = setupValidated.login;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Team');
+
+  const form = await getTeamProblems(page);
   await context.close();
   await browser.close();
 
@@ -1476,11 +1540,9 @@ export async function shouldDownloadRun(setup: Setup): Promise<void> {
 }
 
 export async function shouldGetRun(setup: Setup): Promise<void> {
-  // instantiate logger
   const logger = Logger.getInstance();
-  logger.logInfo('Getting run');
+  logger.logInfo('Getting admin run');
 
-  // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.getRun();
   const auth: Auth = setupValidated.login;
@@ -1490,34 +1552,27 @@ export async function shouldGetRun(setup: Setup): Promise<void> {
     headless: HEADLESS,
     slowMo: STEP_DURATION
   });
-  // Create a new incognito browser context
   const context = await browser.newContext();
-  // Create a new page inside context.
   const page = await context.newPage();
   page.setDefaultTimeout(TIMEOUT);
+
   await authenticateUser(page, auth);
-  const userType = auth.type;
-  await validate.checkUserType(page, userType);
-  let form;
-  if (userType == 'Admin') {
-    form = await getRun(page, runId);
-  } else {
-    form = await getTeamRun(page, runId);
-  }
-  // Dispose context once it's no longer needed.
+  await validate.checkUserType(page, 'Admin');
+
+  const form = await getRun(page, runId);
+  logger.logInfo('Found run with id: %s', form.id);
+
   await context.close();
   await browser.close();
-  logger.logInfo('Found run with id: %s', form.id);
+
   const output = Output.getInstance();
   output.setResult(form);
 }
 
 export async function shouldGetRuns(setup: Setup): Promise<void> {
-  // instantiate logger
   const logger = Logger.getInstance();
-  logger.logInfo('Getting runs');
+  logger.logInfo('Getting admin runs');
 
-  // validate setup file with zod
   const validate = new Validate(setup);
   const setupValidated = validate.getRuns();
   const auth: Auth = setupValidated.login;
@@ -1526,23 +1581,78 @@ export async function shouldGetRuns(setup: Setup): Promise<void> {
     headless: HEADLESS,
     slowMo: STEP_DURATION
   });
-  // Create a new incognito browser context
   const context = await browser.newContext();
-  // Create a new page inside context.
   const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
   await authenticateUser(page, auth);
-  const userType = auth.type;
-  await validate.checkUserType(page, userType);
-  let form;
-  if (userType == 'Admin') {
-    form = await getRuns(page);
-  } else {
-    form = await getTeamRuns(page);
-  }
-  // Dispose context once it's no longer needed.
+  await validate.checkUserType(page, 'Admin');
+
+  const form = await getRuns(page);
+  logger.logInfo('Found %s runs', form.length);
+
   await context.close();
   await browser.close();
+
+  const output = Output.getInstance();
+  output.setResult(form);
+}
+
+export async function shouldGetTeamRun(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Getting team run');
+
+  const validate = new Validate(setup);
+  const setupValidated = validate.getRun();
+  const auth: Auth = setupValidated.login;
+  const runId = setupValidated.run.id;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Team');
+
+  const form = await getTeamRun(page, runId);
+  logger.logInfo('Found run with id: %s', form.id);
+
+  await context.close();
+  await browser.close();
+
+  const output = Output.getInstance();
+  output.setResult(form);
+}
+
+export async function shouldGetTeamRuns(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Getting team runs');
+
+  const validate = new Validate(setup);
+  const setupValidated = validate.getRuns();
+  const auth: Auth = setupValidated.login;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Team');
+
+  const form = await getTeamRuns(page);
   logger.logInfo('Found %s runs', form.length);
+
+  await context.close();
+  await browser.close();
+
   const output = Output.getInstance();
   output.setResult(form);
 }
@@ -1565,8 +1675,7 @@ export async function shouldSubmitRun(setup: Setup): Promise<void> {
   // Create a new page inside context.
   const page = await context.newPage();
   await authenticateUser(page, team);
-  const userType = team.type;
-  await validate.checkUserType(page, userType);
+  await validate.checkUserType(page, 'Team');
 
   const form = await submitRun(page, setupValidated.run);
   // Dispose context once it's no longer needed.

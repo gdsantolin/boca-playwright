@@ -140,20 +140,10 @@ export async function downloadTeamProblem(
   }
 }
 
-export async function getProblems(
-  page: Page,
-  userType: string
-): Promise<Problem[]> {
-  await page.goto(BASE_URL + '/' + userType.toLowerCase() + '/problem.php');
-  // Wait for load state
+export async function getProblems(page: Page): Promise<Problem[]> {
+  await page.goto(BASE_URL + '/admin/problem.php');
   await page.waitForLoadState('domcontentloaded');
 
-  return userType === 'Admin'
-    ? await getAdminProblems(page)
-    : await getTeamProblems(page);
-}
-
-async function getAdminProblems(page: Page): Promise<Problem[]> {
   const re = new RegExp(`^(Problem #|0 \\(fake\\)|Name)$`);
   const loc = page.locator('td:nth-of-type(1)', {
     hasNotText: re
@@ -176,7 +166,10 @@ async function getAdminProblems(page: Page): Promise<Problem[]> {
   return problems;
 }
 
-async function getTeamProblems(page: Page): Promise<Problem[]> {
+export async function getTeamProblems(page: Page): Promise<Problem[]> {
+  await page.goto(BASE_URL + '/team/problem.php');
+  await page.waitForLoadState('domcontentloaded');
+
   const rows = await page.locator('table:nth-of-type(3) > tbody > tr');
   const problems: Problem[] = [];
   const rowCount = await rows.count();
