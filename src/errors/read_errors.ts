@@ -29,7 +29,7 @@ export enum ExitErrors {
   LANGUAGE_ERROR = 17,
   // LOG_ERROR = 18,
   PROBLEM_ERROR = 19,
-  // RUN_ERROR = 20,
+  RUN_ERROR = 20,
   // TASK_ERROR = 21,
   SITE_ERROR = 22,
   USER_ERROR = 23
@@ -100,6 +100,10 @@ export enum UserMessages {
   USERNAME_REQUIRED = 'Username should be provided.'
 }
 
+export enum RunMessages {
+  NOT_FOUND = 'Run not found.'
+}
+
 type ErrorMessages =
   | ReadMessages
   | TypeMessages
@@ -109,7 +113,8 @@ type ErrorMessages =
   | LanguageMessages
   | ProblemMessages
   | SiteMessages
-  | UserMessages;
+  | UserMessages
+  | RunMessages;
 
 export class ErrorBase extends Error {
   code: number;
@@ -169,5 +174,11 @@ export class SiteError extends ErrorBase {
 export class UserError extends ErrorBase {
   constructor(message: UserMessages, cause?: unknown) {
     super({ code: ExitErrors.USER_ERROR, message, cause });
+  }
+}
+
+export class RunError extends ErrorBase {
+  constructor(message: RunMessages, cause?: unknown) {
+    super({ code: ExitErrors.RUN_ERROR, message, cause });
   }
 }

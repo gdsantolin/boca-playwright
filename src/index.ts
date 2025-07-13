@@ -89,6 +89,8 @@ import {
 import {
   downloadRun,
   downloadRuns,
+  downloadTeamRun,
+  downloadTeamRuns,
   getRun,
   getRuns,
   getTeamRun,
@@ -1535,6 +1537,60 @@ export async function shouldDownloadRun(setup: Setup): Promise<void> {
   await authenticateUser(page, admin);
   await downloadRun(page, runId, outDir);
   // Dispose context once it's no longer needed.
+  await context.close();
+  await browser.close();
+}
+
+export async function shouldDownloadTeamRuns(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Downloading runs (team)');
+
+  const validate = new Validate(setup);
+  const setupValidated = validate.downloadRuns();
+  const team: Auth = setupValidated.login;
+  const outDir = setupValidated.config.runPath;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, team);
+  await validate.checkUserType(page, 'Team');
+  console.log('Downloading team runs to directory: %s', outDir);
+  await downloadTeamRuns(page, outDir);
+
+  await context.close();
+  await browser.close();
+}
+
+export async function shouldDownloadTeamRun(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Downloading run (team)');
+
+  const validate = new Validate(setup);
+  const setupValidated = validate.downloadRun();
+  const team: Auth = setupValidated.login;
+  const runId = setupValidated.run.id;
+  const outDir = setupValidated.config.runPath;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, team);
+  await validate.checkUserType(page, 'Team');
+  await downloadTeamRun(page, runId, outDir);
+
   await context.close();
   await browser.close();
 }

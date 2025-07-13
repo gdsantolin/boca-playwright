@@ -74,6 +74,8 @@ export const categorizedMethods = {
     // Team methods
     'getTeamRun',
     'getTeamRuns',
+    'downloadTeamRun',
+    'downloadTeamRuns',
     'submitRun'
   ]
 } as const;
@@ -91,6 +93,8 @@ export const teamAllowedMethods = [
   'downloadTeamProblem',
   'getTeamRun',
   'getTeamRuns',
+  'downloadTeamRun',
+  'downloadTeamRuns',
   'submitRun'
 ];
 

@@ -24,6 +24,7 @@ import { BASE_URL } from '../index';
 import * as path from 'path';
 import { type RunType, type GetRun, RunTypeTeam, SubmitRun } from '../data/run';
 import { dialogHandler } from '../utils/handlers';
+import { RunError, RunMessages } from '../errors/read_errors';
 
 // const statusArr = ['NA', 'YES', 'NO_Compilation', 'NO_Runtime', 'NO_Timelimit', 'NO_Presentation', 'NO_Wrong', 'NO_Contact', 'NO_Name']
 
@@ -134,6 +135,46 @@ export async function downloadRun(
   const problem = (await row.locator('td:nth-of-type(5)').textContent()) ?? '';
 
   await saveFiles(page, link, outDir, username, problem);
+}
+
+export async function downloadTeamRuns(
+  page: Page,
+  outDir: string
+): Promise<void> {
+  await page.goto(BASE_URL + '/team/run.php');
+  // Wait for load state
+  await page.waitForLoadState('domcontentloaded');
+
+  const rows = await page
+    .locator('table:nth-of-type(3) > tbody > tr:nth-of-type(n+2)')
+    .all();
+  console.log(`Found ${rows.length} runs to download`);
+  for (const row of rows) {
+    const file = await row.locator('td:nth-of-type(6) > a');
+    const filename = (await file.textContent()) ?? 'file';
+    await downloadFile(page, outDir, file, filename);
+  }
+}
+
+export async function downloadTeamRun(
+  page: Page,
+  runId: GetRun['id'],
+  outDir: string
+): Promise<void> {
+  await page.goto(`${BASE_URL}/team/run.php`);
+  // Wait for load state
+  await page.waitForLoadState('domcontentloaded');
+
+  // Localiza a linha com o runId na primeira coluna da tabela 3
+  const row = page.locator('table:nth-of-type(3) > tbody > tr', {
+    has: page.locator('td:nth-of-type(1)', { hasText: runId })
+  });
+  if ((await row.count()) === 0) throw new RunError(RunMessages.NOT_FOUND);
+  // Localiza o link do arquivo (coluna 6)
+  const file = await row.locator('td:nth-of-type(6) > a');
+  const filename = (await file.textContent()) ?? 'file';
+
+  await downloadFile(page, outDir, file, filename);
 }
 
 export async function getRun(
