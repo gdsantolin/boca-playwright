@@ -112,11 +112,18 @@ export async function interactiveCLI(): Promise<void> {
             {
               type: 'input',
               name: 'filePath',
-              message: 'Enter the config file path (JSON):',
-              validate: (input) =>
-                fs.existsSync(input) ? true : 'File not found.'
+              message:
+                'Enter the config file path (JSON) or type "back" to return:',
+              validate: (input) => {
+                if (input.trim() === 'back') return true;
+                return fs.existsSync(input) ? true : 'File not found.';
+              }
             }
           ]);
+
+          if (filePath.trim() === '<< back') {
+            continue;
+          }
 
           try {
             const setup = JSON.parse(
