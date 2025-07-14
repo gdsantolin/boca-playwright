@@ -215,6 +215,24 @@ testGetValidProblems() {
   assertEquals "${RET_SUCCESS}" "${ret_code}"
 }
 
+testGetValidProblemsTeam() {
+  if [ -n "$1" ]; then
+    config_file="$1"
+  else
+    config_file="resources/mocks/success/problem/valid_problem_team.json"
+  fi
+
+  $cmd -- -p "${config_file}" -m getTeamProblems >/dev/null 2>&1
+  ret_code=$?
+  assertEquals "${RET_SUCCESS}" "${ret_code}"
+
+  # Check if the result file was created
+  file_path=$(jq -r '.config.resultFilePath' "../${config_file}")
+  [ -f "../${file_path}" ]
+  ret_code=$?
+  assertEquals "${RET_SUCCESS}" "${ret_code}"
+}
+
 echo "This is the current shell:"
 # https://www.cyberciti.biz/tips/how-do-i-find-out-what-shell-im-using.html
 SHELL=$(ps -p $$)

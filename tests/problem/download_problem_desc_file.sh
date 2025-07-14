@@ -295,6 +295,18 @@ testDownloadValidProblemDescFile() {
   assertEquals "${RET_SUCCESS}" "${ret_code}"
 }
 
+testDownloadTeamValidProblemDescFile() {
+  if [ -n "$1" ]; then
+    config_file="$1"
+  else
+    config_file="resources/mocks/success/problem/valid_problem_team.json"
+  fi
+
+  $cmd -- -v -p "${config_file}" -m downloadTeamProblem >/dev/null 2>&1
+  ret_code=$?
+  assertEquals "${RET_SUCCESS}" "${ret_code}"
+}
+
 echo "This is the current shell:"
 # https://www.cyberciti.biz/tips/how-do-i-find-out-what-shell-im-using.html
 SHELL=$(ps -p $$)

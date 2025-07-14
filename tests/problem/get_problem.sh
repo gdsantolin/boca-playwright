@@ -251,6 +251,26 @@ testGetValidProblem() {
   assertEquals "${RET_SUCCESS}" "${ret_code}"
 }
 
+testGetValidProblemTeam() {
+  config_file="resources/mocks/success/problem/valid_problem_team.json"
+  $cmd -- -p "${config_file}" -m getTeamProblem >/dev/null 2>&1
+  ret_code=$?
+  assertEquals "${RET_SUCCESS}" "${ret_code}"
+
+  # Check if the result file was created
+  file_path=$(jq -r '.config.resultFilePath' "../${config_file}")
+  [ -f "../${file_path}" ]
+  ret_code=$?
+  assertEquals "${RET_SUCCESS}" "${ret_code}"
+
+  # Check if the returned problem has the same id of the configuration file
+  jsonIn=$(jq -S -r '.problem | .id' "../${config_file}")
+  jsonOut=$(jq -S -r '.id' "../${file_path}")
+  [ "${jsonIn}" = "${jsonOut}" ]
+  ret_code=$?
+  assertEquals "${RET_SUCCESS}" "${ret_code}"
+}
+
 echo "This is the current shell:"
 # https://www.cyberciti.biz/tips/how-do-i-find-out-what-shell-im-using.html
 SHELL=$(ps -p $$)
