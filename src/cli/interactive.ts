@@ -14,7 +14,7 @@ import {
   teamAllowedMethods
 } from './permissions';
 import * as fs from 'fs';
-import { getUserRoleFromLogin } from '../scripts/auth';
+import { getUserRoleFromLogin, Role } from '../scripts/auth';
 
 export async function interactiveCLI(): Promise<void> {
   const logger = Logger.getInstance(true);
@@ -38,8 +38,18 @@ export async function interactiveCLI(): Promise<void> {
         }
       ]);
 
-      const { role } = await getUserRoleFromLogin(username, password);
-      logger.logInfo(`User role detected: ${role}`);
+      let role: Role;
+      try {
+        const loginResult = await getUserRoleFromLogin(username, password);
+        role = loginResult.role;
+        logger.logInfo(`User role detected: ${role}`);
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          logger.logError(e.message);
+          continue; // Retry authentication
+        }
+        throw e;
+      }
 
       const allowedCategories =
         rolePermissions[role as keyof typeof rolePermissions];

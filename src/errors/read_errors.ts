@@ -47,7 +47,8 @@ export enum TypeMessages {
 }
 
 export enum AuthMessages {
-  INVALID_TYPE = 'Invalid user type'
+  INVALID_TYPE = 'Invalid user type',
+  LOGIN_FAILED = 'Login failed. Please check your username and password.'
 }
 
 export enum ContestMessages {

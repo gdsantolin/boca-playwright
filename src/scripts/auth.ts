@@ -21,6 +21,7 @@
 import { chromium, type Page } from 'playwright';
 import { type Auth } from '../data/auth';
 import { BASE_URL } from '../index';
+import { AuthError, AuthMessages } from '../errors/read_errors';
 
 export async function authenticateUser(page: Page, user: Auth): Promise<void> {
   await page.goto(BASE_URL + '/');
@@ -32,7 +33,7 @@ export async function authenticateUser(page: Page, user: Auth): Promise<void> {
   await page.locator('input[name="password"]').press('Enter');
 }
 
-type Role = 'System' | 'Admin' | 'Team';
+export type Role = 'System' | 'Admin' | 'Team';
 
 export async function getUserRoleFromLogin(
   username: string,
@@ -48,6 +49,15 @@ export async function getUserRoleFromLogin(
   await page.locator('input[name="name"]').fill(username);
   await page.locator('input[name="password"]').fill(password);
   await page.locator('input[name="password"]').press('Enter');
+
+  // Handle failed login
+  await page.waitForTimeout(1000);
+  if (page.url().includes('/boca/index.php')) {
+    throw new AuthError(
+      AuthMessages.LOGIN_FAILED,
+      'Login failed. Please check your username and password.'
+    );
+  }
 
   const menuLocator = page.locator('a.menu');
   await menuLocator.first().waitFor();
