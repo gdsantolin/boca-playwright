@@ -105,5 +105,7 @@ export const adminDeniedMethods = [
   'getTeamProblems',
   'downloadTeamProblem',
   'getTeamRun',
-  'getTeamRuns'
+  'getTeamRuns',
+  'downloadTeamRun',
+  'downloadTeamRuns'
 ];

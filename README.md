@@ -37,10 +37,10 @@
   - [Why boca-playwright?](#why-boca-playwright)
   - [Requirements](#requirements)
   - [Quick Start](#quick-start)
-    - [Localmente](#localmente)
+    - [Local](#localmente)
     - [Docker](#docker)
-  - [Lista de comandos](#lista-de-comandos)
-    - [Exemplos](#exemplos)
+  - [Command List](#lista-de-comandos)
+    - [Examples](#exemplos)
   - [How To Run On Different Node Release Images](#how-to-run-on-different-node-release-images)
   - [How To Build It (For Development)](#how-to-build-it-for-development)
   - [How To Publish It](#how-to-publish-it)
@@ -50,11 +50,16 @@
 
 ## What Is BOCA?
 
-TODO
+BOCA Online Contest Administrator is a web-based system used for managing programming competitions, such as ICPC-style contests. It allows contest organizers to register users, manage problems, process submissions, and track scores in real-time through a centralized interface.
 
 ## Why boca-playwright?
 
-TODO
+`boca-playwright` is a Node.js-based automation tool built with [Playwright](https://playwright.dev/) to interact programmatically with BOCA's web interface. It serves as a practical alternative in order to avoid interacting directly with BOCA's outdated and often confusing UI, enabling:
+
+- automated contest and user creation (for Admins),
+- programmatic interaction with problems and runs (for Admins and/or Team),
+- efficient integration with other tools or pipelines,
+- and safer automation via headless browser emulation.
 
 ## Requirements
 
@@ -62,126 +67,129 @@ TODO
 
 ## Quick Start
 
-### Localmente
+### Local Setup
 
-- Instalar o [Node.js](https://nodejs.org/en/download/)
-- Executar o comando `npm install` na pasta do projeto
-- Executar o comando `npm start -- <caminho do arquivo de configuração> <comando>` na pasta do projeto
+- Install [Node.js](https://nodejs.org/en/download/)
+- Run `npm install` inside the project folder
+- Create a setup file following the example on `resources/setup.json`
+- Run `npm start` to display the interactive CLI,
+- Or run `npm start -- <config path> <command>` to execute a command directly
 
 ### Docker
 
-- Instalar o [Docker](https://docs.docker.com/get-docker/)
-- Criar um arquivo de configuração seguindo o modelo do arquivo `resources/setup.json`
-- Executar o comando `docker build -t boca-playwright .` na pasta do projeto
-- Executar o comando `docker run -it --rm boca-playwright <caminho do arquivo de configuração> <comando>` na pasta do projeto
+- Create a setup file following the example on `resources/setup.json`
+- Run `docker build -t boca-playwright .` inside the project folder
+- Run `docker run -it --rm boca-playwright <config path> <command>`
 
-## Lista de comandos
+## Available Commands
 
-- activateContest
-- createContest
-- getContest
-- getContests
-- updateContest
+Commands are grouped by user type.
 
-- createAnswer
-- deleteAnswer
-- getAnswer
-- getAnswers
-- updateAnswer
+### System Commands
 
-- createLanguage
-- deleteLanguage
-- getLanguage
-- getLanguages
-- updateLanguage
+- `activateContest`
+- `createContest`
+- `updateContest`
+- `getContest`
+- `getContests`
 
-- createProblem
-- deleteProblem (disabledProblem)
-- deleteProblems (disabledProblems)
-- downloadProblem
-- getProblem
-- getProblems
-- restoreProblem (enableProblem)
-- restoreProblems (enableProblems)
-- updateProblem
+### Admin Commands
 
-- createSite
-- disableLoginSite
-- enableLoginSite
-- forceLogoffSite
-- getSite
-- getSites
-- updateSite
+- `createSite`
+- `updateSite`
+- `getSite`
+- `getSites`
+- `disableLoginSite`
+- `enableLoginSite`
+- `forceLogoffSite`
 
-- createUser
-- deleteUser (disableUser)
-- deleteUsers (disableUsers)
-- getUser
-- getUsers
-- importUsers
-- restoreUser (enableUser)
-- restoreUsers (enableUsers)
-- updateUser
+- `createUser`
+- `updateUser`
+- `getUser`
+- `getUsers`
+- `importUsers`
+- `disableUser` (alias: `deleteUser`)
+- `deleteUsers` (alias: `deleteUsers`)
+- `enableUser` (alias: `restoreUser`)
+- `enableUsers` (alias: `restoreUsers`)
 
-- downloadRuns
+- `createProblem`
+- `updateProblem`
+- `getProblem`
+- `getProblems`
+- `downloadProblem`
+- `disableProblem` (alias: `deleteProblem`)
+- `disableProblems` (alias: `deleteProblems`)
+- `enableProblem` (alias: `restoreProblem`)
+- `enableProblems` (alias: `restoreProblems`)
 
-### Exemplos
+- `createAnswer`
+- `updateAnswer`
+- `getAnswer`
+- `getAnswers`
+- `deleteAnswer`
+
+- `createLanguage`
+- `updateLanguage`
+- `getLanguage`
+- `getLanguages`
+- `deleteLanguage`
+
+- `getRuns`
+- `getRun`
+- `downloadRuns`
+- `downloadRun`
+
+### Team Commands
+
+- `getTeamProblem`
+- `getTeamProblems`
+- `downloadTeamProblem`
+
+- `getTeamRun`
+- `getTeamRuns`
+- `downloadTeamRun`
+- `downloadTeamRuns`
+- `submitRun`
+
+### Examples
+
+Run the interactive CLI with `npm start`:
+
+  ![CLI demo](resources/cli.gif)
+
+Run a command via Docker
 
 ```sh
 docker run -it \
            --rm \
            -v "$PWD"/resources/mocks:/tmp/resources \
            boca-playwright /tmp/resources/create_contest.json createContest
-
 ```
 
-- Cria usuário a partir dos valores dentro do arquivo JSON na propriedade `user`
+Run a specific command:
 
-  ```bash
-  npm start -- -p resources/setup.json -m createUser
-  ```
+```bash
+npm start -- -p resources/setup.json -m createUser
+```
 
-- Cria usuário a partir do arquivo localizado na url da propriedade `setup.userPath`
+Import users from a file path defined in `setup.userPath`:
 
-  ```bash
-  npm start -- -p resources/setup.json -m importUsers
-  ```
+```bash
+npm start -- -p resources/setup.json -m importUsers
+```
 
-- Deleta um usuário a partir do primeiro valor dentro do arquivo JSON na propriedade `user`
+Create a contest:
 
-  ```bash
-  npm start -- -p resources/setup.json -m deleteUser
-  ```
+```bash
+npm start -- -p resources/setup.json -m createContest
+```
 
-- Cria um contest a partir do primeiro valor dentro do arquivo JSON na propriedade `contests`
+Download all runs to the folder specified by `runPath`:
 
-  ```bash
-  npm start -- -p resources/setup.json -m createContest
-  ```
-
-- Atualiza um contest a partir do primeiro valor dentro do arquivo JSON na propriedade `contests`
-
-  ```bash
-  npm start -- -p resources/setup.json -m updateContest
-  ```
-
-- Cria um site a partir do primeiro valor dentro do arquivo JSON na propriedade `sites`
-
-  ```bash
-  npm start -- -p resources/setup.json -m createSite
-  ```
-
-- Cria um problema a partir do primeiro valor dentro do arquivo JSON na propriedade `problems`
-
-  ```bash
-  npm start -- -p resources/setup.json -m createProblem
-  ```
-
-- Gera um relatório de runs do site e deposita os arquivos na pasta definida na propriedade `runPath`
-
-  ```bash
-  npm start -- -p resources/setup.json -m downloadRuns
-  ```
+```bash
+npm start -- -p resources/setup.json -m downloadRuns
+```
 
 ## How To Run On Different Node Release Images
 
