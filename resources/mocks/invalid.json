@@ -4,8 +4,7 @@
   },
   "login": {
     "username": "system",
-    "password": "boca",
-    "type": "System"
+    "password": "boca"
   },
   "contest": {
     "name": "Contest 1",

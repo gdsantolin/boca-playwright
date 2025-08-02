@@ -4,7 +4,6 @@
   },
   "login": {
     "username": 12345,
-    "password": "boca",
-    "type": "System"
+    "password": "boca"
   }
 }

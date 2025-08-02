@@ -4,7 +4,6 @@
   },
   "login": {
     "username": "sys",
-    "password": "boca",
-    "type": "System"
+    "password": "boca"
   }
 }

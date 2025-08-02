@@ -2,7 +2,6 @@
   "config": {},
   "login": {
     "username": "system",
-    "password": "boca",
-    "type": "System"
+    "password": "boca"
   }
 }

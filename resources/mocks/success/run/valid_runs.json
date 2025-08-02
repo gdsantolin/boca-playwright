@@ -6,7 +6,6 @@
   },
   "login": {
     "username": "admin",
-    "password": "boca",
-    "type": "Admin"
+    "password": "boca"
   }
 }

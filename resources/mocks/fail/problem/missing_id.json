@@ -5,8 +5,7 @@
   },
   "login": {
     "username": "admin",
-    "password": "boca",
-    "type": "Admin"
+    "password": "boca"
   },
   "problem": {
     "name": "L1_1",

@@ -5,8 +5,7 @@
   },
   "login": {
     "username": "admin",
-    "password": "boca",
-    "type": "Admin"
+    "password": "boca"
   },
   "site": {
     "id": "1",

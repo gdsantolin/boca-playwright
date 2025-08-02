@@ -4,8 +4,7 @@
   },
   "login": {
     "username": "team",
-    "password": "boca",
-    "type": "Team"
+    "password": "boca"
   },
   "problem": {
     "name": "L1_1"

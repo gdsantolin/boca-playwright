@@ -4,8 +4,7 @@
   },
   "login": {
     "username": "system",
-    "password": "boca",
-    "type": "System"
+    "password": "boca"
   },
   "contest": {
     "startDate": "2023-10-20 10:00",
