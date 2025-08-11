@@ -72,7 +72,8 @@ BOCA Online Contest Administrator is a web-based system used for managing progra
 - Install [Node.js](https://nodejs.org/en/download/)
 - Run `npm install` inside the project folder
 - Create a setup file following the example on `resources/setup.json`
-- Run `npm start` to display the interactive CLI,
+- Run `npm start` to display the interactive CLI
+  - `--host <host>` (or `-h <host>`): Optional flag to specify the BOCA host URL (e.g. `npm start -- -h localhost:8000/boca`). If omitted, you will be prompted during execution.
 - Or run `npm start -- <config path> <command>` to execute a command directly
 
 ### Docker
@@ -145,6 +146,7 @@ Commands are grouped by user type.
 - `getTeamProblem`
 - `getTeamProblems`
 - `downloadTeamProblem`
+- `downloadTeamProblems`
 
 - `getTeamRun`
 - `getTeamRuns`
