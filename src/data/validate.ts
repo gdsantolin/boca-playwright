@@ -32,6 +32,7 @@ import {
   createProblemSchema,
   downloadProblemSchema,
   downloadTeamProblemSchema,
+  downloadTeamProblemsSchema,
   getProblemSchema,
   getTeamProblemSchema,
   updateProblemSchema
@@ -163,6 +164,15 @@ export class Validate {
     const setupType = z.object({
       login: authSchema,
       problem: downloadTeamProblemSchema
+    });
+    setupType.parse(this.setup);
+    return this.setup as z.infer<typeof setupType>;
+  }
+
+  downloadTeamProblems(): z.infer<typeof setupType> {
+    const setupType = z.object({
+      login: authSchema,
+      config: downloadTeamProblemsSchema
     });
     setupType.parse(this.setup);
     return this.setup as z.infer<typeof setupType>;

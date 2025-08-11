@@ -52,7 +52,8 @@ import {
   shouldGetTeamRun,
   shouldGetTeamRuns,
   shouldDownloadTeamRun,
-  shouldDownloadTeamRuns
+  shouldDownloadTeamRuns,
+  shouldDownloadTeamProblems
 } from '..';
 import { Setup } from '../data/setup';
 
@@ -93,6 +94,7 @@ export const methods: Record<string, (setup: Setup) => Promise<void>> = {
   updateProblem: shouldUpdateProblem,
   // Problems - Team
   downloadTeamProblem: shouldDownloadTeamProblem,
+  downloadTeamProblems: shouldDownloadTeamProblems,
   getTeamProblem: shouldGetTeamProblem,
   getTeamProblems: shouldGetTeamProblems,
   // Sites

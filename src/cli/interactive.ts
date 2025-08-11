@@ -10,8 +10,7 @@ import { ExitPromptError } from '@inquirer/core';
 import {
   rolePermissions,
   categorizedMethods,
-  adminDeniedMethods,
-  teamAllowedMethods
+  teamMethods
 } from './permissions';
 import * as fs from 'fs';
 import { getUserRoleFromLogin, Role } from '../scripts/auth';
@@ -83,11 +82,39 @@ export async function interactiveCLI(defaultHost?: string): Promise<void> {
 
     getTeamProblems: async () => ({}),
 
-    downloadTeamProblem: async () => ({
-      problem: await inquirer.prompt([
+    downloadTeamProblems: async () => {
+      const { downloadDir } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'downloadDir',
+          message: 'Path to save problems:',
+          default: './problems'
+        }
+      ]);
+      return {
+        config: { runPath: downloadDir }
+      };
+    },
+
+    downloadTeamProblem: async () => {
+      const problem = await inquirer.prompt([
         { type: 'input', name: 'name', message: 'Problem name:' }
-      ])
-    })
+      ]);
+      const { downloadDir } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'downloadDir',
+          message: 'Path to save problem:',
+          default: './problems'
+        }
+      ]);
+      return {
+        problem: {
+          ...problem,
+          downloadDir
+        }
+      };
+    }
   };
 
   const cliRunning = true;
@@ -151,15 +178,11 @@ export async function interactiveCLI(defaultHost?: string): Promise<void> {
         ];
 
         if (role === 'Admin') {
-          methodNames = methodNames.filter(
-            (key) => !adminDeniedMethods.includes(key)
-          );
+          methodNames = methodNames.filter((key) => !teamMethods.includes(key));
         }
 
         if (role === 'Team') {
-          methodNames = methodNames.filter((key) =>
-            teamAllowedMethods.includes(key)
-          );
+          methodNames = methodNames.filter((key) => teamMethods.includes(key));
         }
 
         if (methodNames.length === 0) {

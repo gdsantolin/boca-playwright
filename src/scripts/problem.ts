@@ -140,6 +140,31 @@ export async function downloadTeamProblem(
   }
 }
 
+export async function downloadTeamProblems(
+  page: Page,
+  outDir: string
+): Promise<number> {
+  await page.goto(BASE_URL + '/team/problem.php');
+  await page.waitForLoadState('domcontentloaded');
+
+  const rows = await page
+    .locator('table:nth-of-type(3) > tbody > tr:nth-of-type(n+2)')
+    .all();
+
+  for (const row of rows) {
+    const link = await row.locator('td:nth-of-type(4) > a');
+    const count = await link.count();
+    if (count === 0) {
+      console.log('Problem has no description file, skipping.');
+      continue;
+    }
+
+    await downloadFile(page, outDir, link);
+  }
+
+  return rows.length;
+}
+
 export async function getProblems(page: Page): Promise<Problem[]> {
   await page.goto(BASE_URL + '/admin/problem.php');
   await page.waitForLoadState('domcontentloaded');

@@ -35,6 +35,8 @@ export type DownloadProblem = z.infer<typeof downloadProblemSchema>;
 
 export type DownloadTeamProblem = z.infer<typeof downloadTeamProblemSchema>;
 
+export type DownloadTeamProblems = z.infer<typeof downloadTeamProblemsSchema>;
+
 export type GetProblem = z.infer<typeof getProblemSchema>;
 
 export type UpdateProblem = z.infer<typeof updateProblemSchema>;
@@ -123,6 +125,10 @@ export const downloadTeamProblemSchema = problemSchema
       downloadDir: fileSchema
     })
   );
+
+export const downloadTeamProblemsSchema = z.object({
+  runPath: z.string()
+});
 
 export const getProblemSchema = problemSchema.pick({
   id: true

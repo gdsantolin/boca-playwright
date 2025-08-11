@@ -40,7 +40,8 @@ export const categorizedMethods = {
     // Team methods
     'getTeamProblem',
     'getTeamProblems',
-    'downloadTeamProblem'
+    'downloadTeamProblem',
+    'downloadTeamProblems'
   ],
   Sites: [
     'createSite',
@@ -87,25 +88,14 @@ export const rolePermissions = {
 } as const;
 
 // Team users are allowed to access only a subset of methods
-export const teamAllowedMethods = [
+export const teamMethods = [
   'getTeamProblem',
   'getTeamProblems',
   'downloadTeamProblem',
+  'downloadTeamProblems',
   'getTeamRun',
   'getTeamRuns',
   'downloadTeamRun',
   'downloadTeamRuns',
   'submitRun'
-];
-
-// Admin users access most methods except team-specific ones
-export const adminDeniedMethods = [
-  'submitRun',
-  'getTeamProblem',
-  'getTeamProblems',
-  'downloadTeamProblem',
-  'getTeamRun',
-  'getTeamRuns',
-  'downloadTeamRun',
-  'downloadTeamRuns'
 ];

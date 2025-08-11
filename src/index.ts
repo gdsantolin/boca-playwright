@@ -58,6 +58,7 @@ import {
   deleteProblems,
   downloadProblem,
   downloadTeamProblem,
+  downloadTeamProblems,
   getProblem,
   getProblems,
   getTeamProblem,
@@ -803,6 +804,7 @@ export async function shouldGetProblems(setup: Setup): Promise<void> {
 
   await validate.checkUserType(page, 'Admin');
   const form = await getProblems(page);
+  logger.logInfo('Found %s problems', form.length);
 
   await context.close();
   await browser.close();
@@ -833,6 +835,33 @@ export async function shouldDownloadTeamProblem(setup: Setup): Promise<void> {
 
   await downloadTeamProblem(page, problem);
   logger.logInfo('Downloaded file(s) of problem with name: %s', problem.name);
+
+  await context.close();
+  await browser.close();
+}
+
+export async function shouldDownloadTeamProblems(setup: Setup): Promise<void> {
+  const logger = Logger.getInstance();
+  logger.logInfo('Downloading team problem file(s)');
+
+  const validate = new Validate(setup);
+  const setupValidated = validate.downloadTeamProblems();
+  const auth: Auth = setupValidated.login;
+  const outDir = setupValidated.config.runPath;
+
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    slowMo: STEP_DURATION
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(TIMEOUT);
+
+  await authenticateUser(page, auth);
+  await validate.checkUserType(page, 'Team');
+
+  const rows = await downloadTeamProblems(page, outDir);
+  logger.logInfo('%s problems downloaded at: %s', rows, outDir);
 
   await context.close();
   await browser.close();
