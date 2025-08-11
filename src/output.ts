@@ -25,6 +25,7 @@ import { type Language } from './data/language';
 import { type Problem } from './data/problem';
 import { type Site } from './data/site';
 import { type User } from './data/user';
+import { RunType, RunTypeTeam } from './data/run';
 
 export class Output {
   private static instance: Output | null = null;
@@ -57,6 +58,10 @@ export class Output {
       | Site[]
       | User
       | User[]
+      | RunType
+      | RunType[]
+      | RunTypeTeam
+      | RunTypeTeam[]
   ) {
     this.result = JSON.stringify(result, null, 2);
   }

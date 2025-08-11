@@ -218,7 +218,6 @@ async function getTeamProblemFromRow(
     throw new ProblemError(ProblemMessages.NOT_FOUND);
   const columns = await row.locator('td').all();
   problem.name = (await columns[0].innerText()).trim();
-  console.log(problem);
   return problem;
 }
 
@@ -249,7 +248,6 @@ async function getProblemFromRow(
   problem.isEnabled = (await columns[0].innerText()).endsWith('(deleted)')
     ? 'No'
     : 'Yes';
-  console.log(problem);
   return problem;
 }
 

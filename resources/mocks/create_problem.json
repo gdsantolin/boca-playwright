@@ -7,10 +7,10 @@
     "password": "boca"
   },
   "problem": {
-    "id": 2,
-    "name": "l2",
-    "filePath": "resources/L1_1.zip",
-    "colorName": "red",
-    "colorCode": "FF0000"
+    "id": "1004",
+    "name": "L1_4",
+    "filePath": "resources/L1_4.zip",
+    "colorName": "white",
+    "colorCode": "FFFFFF"
   }
 }

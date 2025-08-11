@@ -97,6 +97,7 @@ import {
   getTeamRuns,
   submitRun
 } from './scripts/run';
+import { Command } from 'commander';
 
 const STEP_DURATION = 100;
 const HEADLESS = true;
@@ -886,6 +887,7 @@ export async function shouldGetTeamProblems(setup: Setup): Promise<void> {
   await validate.checkUserType(page, 'Team');
 
   const form = await getTeamProblems(page);
+  logger.logInfo('Found %s problems', form.length);
   await context.close();
   await browser.close();
 
@@ -1745,14 +1747,28 @@ export async function shouldSubmitRun(setup: Setup): Promise<void> {
 //#endregion
 
 async function main() {
+  const program = new Command();
+
+  program.allowUnknownOption(true).option('-h, --host <url>', 'BOCA host URL');
+
+  program.parse(process.argv);
+  const opts = program.opts();
+
   const args = process.argv.slice(2);
-  if (args.length === 0) {
-    const { interactiveCLI } = await import('./cli/interactive'); // Avoid circular dependency
-    await interactiveCLI();
-  } else {
-    const { legacyCLI } = await import('./cli/legacy'); // Avoid circular dependency
+
+  if (
+    args.includes('-p') ||
+    args.includes('--path') ||
+    args.includes('-m') ||
+    args.includes('--method')
+  ) {
+    const { legacyCLI } = await import('./cli/legacy');
     legacyCLI();
+    return;
   }
+
+  const { interactiveCLI } = await import('./cli/interactive');
+  await interactiveCLI(opts.host);
 }
 
 main();

@@ -16,11 +16,79 @@ import {
 import * as fs from 'fs';
 import { getUserRoleFromLogin, Role } from '../scripts/auth';
 
-export async function interactiveCLI(): Promise<void> {
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P];
+};
+
+export async function interactiveCLI(defaultHost?: string): Promise<void> {
   const logger = Logger.getInstance(true);
   const output = Output.getInstance();
 
+  let host = defaultHost;
+
   printHeader();
+
+  const teamPrompts: Record<string, () => Promise<PartialDeep<Setup>>> = {
+    submitRun: async () => ({
+      run: await inquirer.prompt([
+        { type: 'input', name: 'problem', message: 'Problem Name:' },
+        { type: 'input', name: 'language', message: 'Language:' },
+        { type: 'input', name: 'filePath', message: 'Path to source file:' }
+      ])
+    }),
+
+    downloadTeamRun: async () => {
+      const { id } = await inquirer.prompt([
+        { type: 'input', name: 'id', message: 'Run ID:' }
+      ]);
+      const { runPath } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'runPath',
+          message: 'Path to save run:',
+          default: './runs'
+        }
+      ]);
+      return {
+        config: { runPath },
+        run: { id }
+      };
+    },
+
+    downloadTeamRuns: async () => {
+      const { runPath } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'runPath',
+          message: 'Path to save runs:',
+          default: './runs'
+        }
+      ]);
+      return { config: { runPath } };
+    },
+
+    getTeamRun: async () => ({
+      run: await inquirer.prompt([
+        { type: 'input', name: 'id', message: 'Run ID:' }
+      ])
+    }),
+
+    getTeamRuns: async () => ({}),
+
+    getTeamProblem: async () => ({
+      problem: await inquirer.prompt([
+        { type: 'input', name: 'name', message: 'Problem name:' }
+      ])
+    }),
+
+    getTeamProblems: async () => ({}),
+
+    downloadTeamProblem: async () => ({
+      problem: await inquirer.prompt([
+        { type: 'input', name: 'name', message: 'Problem name:' }
+      ])
+    })
+  };
 
   const cliRunning = true;
   while (cliRunning) {
@@ -118,6 +186,66 @@ export async function interactiveCLI(): Promise<void> {
             break;
           }
 
+          const selectedMethod = methods[method];
+          if (!selectedMethod) {
+            logger.logError(`Method "${method}" not found.`);
+            continue;
+          }
+
+          // Team methods use prompts instead of resource files
+          if (role === 'Team') {
+            if (!host) {
+              const { inputHost } = await inquirer.prompt([
+                {
+                  type: 'input',
+                  name: 'inputHost',
+                  message: 'Enter the BOCA host URL:',
+                  default: 'localhost:8000/boca'
+                }
+              ]);
+              host = inputHost;
+            }
+
+            let methodData: PartialDeep<Setup> = {};
+            const promptFn = teamPrompts[method];
+            if (promptFn) {
+              methodData = await promptFn();
+            }
+
+            const setup: Setup = {
+              config: {
+                url: host!,
+                resultFilePath: './resources/result.json',
+                ...(methodData.config || {})
+              },
+              login: { username, password },
+              ...(methodData.run ? { run: methodData.run } : {}),
+              ...(methodData.problem ? { problem: methodData.problem } : {})
+            };
+
+            try {
+              await selectedMethod(setup);
+              logger.logInfo('Executed successfully.');
+
+              if (setup.config.resultFilePath) {
+                output.writeFile(setup.config.resultFilePath);
+                logger.logInfo(
+                  'Result saved at %s',
+                  setup.config.resultFilePath
+                );
+              }
+            } catch (e) {
+              if (e instanceof ZodError) {
+                logger.logZodError(e);
+              } else {
+                logger.logError(String(e));
+              }
+            }
+
+            continue; // volta pro menu de métodos
+          }
+
+          // Admin and System methods still use resource files
           const { filePath } = await inquirer.prompt([
             {
               type: 'input',
@@ -131,7 +259,7 @@ export async function interactiveCLI(): Promise<void> {
             }
           ]);
 
-          if (filePath.trim() === '<< back') {
+          if (filePath.trim() === 'back') {
             continue;
           }
 
@@ -140,12 +268,6 @@ export async function interactiveCLI(): Promise<void> {
               fs.readFileSync(filePath, 'utf8')
             ) as Setup;
             setupSchema.parse(setup);
-
-            const selectedMethod = methods[method];
-            if (!selectedMethod) {
-              logger.logError(`Method "${method}" not found.`);
-              continue;
-            }
 
             await selectedMethod(setup);
             logger.logInfo('Executed successfully.');
