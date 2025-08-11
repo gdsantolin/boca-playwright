@@ -23,7 +23,6 @@ import * as fs from 'fs';
 import { BASE_URL } from '../index';
 import * as path from 'path';
 import { type RunType, type GetRun, RunTypeTeam, SubmitRun } from '../data/run';
-import { dialogHandler } from '../utils/handlers';
 import { RunError, RunMessages } from '../errors/read_errors';
 
 // const statusArr = ['NA', 'YES', 'NO_Compilation', 'NO_Runtime', 'NO_Timelimit', 'NO_Presentation', 'NO_Wrong', 'NO_Contact', 'NO_Name']
@@ -321,6 +320,8 @@ export async function submitRun(
   await page.goto(`${BASE_URL}/team/run.php`);
   await page.waitForLoadState('domcontentloaded');
 
+  let errorDialogMessage: string | null = null;
+
   // Fill the form
   await page.locator('select[name="problem"]').selectOption(run.problem);
   await page.locator('select[name="language"]').selectOption(run.language);
@@ -328,7 +329,21 @@ export async function submitRun(
     .locator('input[type="file"][name="sourcefile"]')
     .setInputFiles(run.filePath);
 
-  page.once('dialog', dialogHandler);
+  page.on('dialog', async (dialog) => {
+    const message = dialog.message();
+    if (message.includes('Confirm submission')) {
+      await dialog.accept();
+    } else {
+      errorDialogMessage = message;
+      await dialog.dismiss();
+    }
+  });
+
   await page.locator('input[type="submit"][name="Submit"]').click();
+
+  if (errorDialogMessage) {
+    throw new Error(`Submit failed: ${errorDialogMessage}`);
+  }
+
   return await getTeamRuns(page);
 }
