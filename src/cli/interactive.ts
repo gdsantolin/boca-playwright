@@ -32,7 +32,12 @@ export async function interactiveCLI(defaultHost?: string): Promise<void> {
       run: await inquirer.prompt([
         { type: 'input', name: 'problem', message: 'Problem Name:' },
         { type: 'input', name: 'language', message: 'Language:' },
-        { type: 'input', name: 'filePath', message: 'Path to source file:' }
+        {
+          type: 'input',
+          name: 'filePath',
+          message: 'Path to source file:',
+          validate: (input) => fs.existsSync(input) || 'File not found.'
+        }
       ])
     }),
 
